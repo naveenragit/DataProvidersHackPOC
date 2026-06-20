@@ -1,0 +1,55 @@
+{
+  "name": "fin-copilot-kit",
+  "displayName": "Financial Services Copilot Kit",
+  "description": "GitHub Copilot agents, prompts, instructions, and skills for Capital Markets, Banking, and Insurance applications on Azure",
+  "version": "1.1.2",
+  "publisher": "fin-copilot",
+  "extensionKind": [
+    "workspace",
+    "ui"
+  ],
+  "engines": {
+    "vscode": "^1.106.1"
+  },
+  "categories": [
+    "Chat"
+  ],
+  "keywords": [
+    "copilot",
+    "azure",
+    "financial",
+    "capital-markets",
+    "banking",
+    "insurance"
+  ],
+  "contributes": {
+    "chatAgents": [
+      { "path": "./.github/agents/fin-task-researcher.agent.md" },
+      { "path": "./.github/agents/fin-task-planner.agent.md" },
+      { "path": "./.github/agents/fin-task-implementor.agent.md" },
+      { "path": "./.github/agents/fin-task-reviewer.agent.md" }
+    ],
+    "chatPromptFiles": [
+      { "path": "./.github/prompts/fin-task-research.prompt.md" },
+      { "path": "./.github/prompts/fin-task-plan.prompt.md" },
+      { "path": "./.github/prompts/fin-task-implement.prompt.md" },
+      { "path": "./.github/prompts/fin-task-review.prompt.md" },
+      { "path": "./.github/prompts/scaffold-financial-app.prompt.md" }
+    ],
+    "chatInstructions": [
+      { "path": "./.github/instructions/coding-standards/python-backend.instructions.md" },
+      { "path": "./.github/instructions/coding-standards/react-frontend.instructions.md" },
+      { "path": "./.github/instructions/coding-standards/azure-services.instructions.md" },
+      { "path": "./.github/instructions/financial-domain/financial-domain.instructions.md" }
+    ],
+    "chatSkills": [
+      { "path": "./.github/skills/azure-financial-services/SKILL.md" },
+      { "path": "./.github/skills/workflow-visualization/SKILL.md" }
+    ]
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/your-org/fin-copilot-kit"
+  },
+  "license": "MIT"
+}
