@@ -36,6 +36,35 @@ appsettings.*.local.json
 .env.*
 !.env.example
 
+# .NET local/secret config — real endpoints & keys are often pasted here
+appsettings.Development.json
+appsettings.Production.json
+appsettings.*.local.json
+local.settings.json
+secrets.json
+*.pubxml
+*.pubxml.user
+
+# ---------------------------------------------------------------------------
+# Azure deploy / Infrastructure-as-Code (subscription IDs, endpoints, keys, state)
+# ---------------------------------------------------------------------------
+# azd environment (holds subscription id, resource names, endpoints)
+.azure/
+azd.env
+# Terraform state & variables can contain secrets and real endpoints
+*.tfstate
+*.tfstate.*
+*.tfvars
+!*.tfvars.example
+.terraform/
+.terraform.lock.hcl
+# Bicep compiled output
+*.arm.json
+
+# Python virtual envs (stray)
+.venv/
+venv/
+
 # ---------------------------------------------------------------------------
 # Editor / OS
 # ---------------------------------------------------------------------------
