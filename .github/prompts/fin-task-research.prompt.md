@@ -11,8 +11,8 @@ Research the following task thoroughly using Azure documentation, codebase analy
 
 ## Research Goals
 
-1. Understand the existing codebase patterns (Python backend, React frontend) relevant to this task
-2. Identify the correct Azure services and SDKs to use (prefer `azure-ai-projects`, `azure-cosmos`, `azure-search-documents`)
+1. Understand the existing codebase patterns (C#/ASP.NET Core backend, React 18 frontend) relevant to this task
+2. Identify the correct Azure services and .NET SDKs to use (prefer `Microsoft.Agents.AI` + `Azure.AI.Projects`, `Microsoft.Azure.Cosmos`, `Azure.Search.Documents`)
 3. Understand financial domain constraints (regulations, data formats, security requirements)
 4. Evaluate implementation alternatives and recommend one approach
 5. Identify the Workflow visualization impact — does this feature require a new workflow node or connection?

@@ -1,0 +1,34 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <LangVersion>latest</LangVersion>
+    <RootNamespace>FinancialServices.Api</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Identity + Entra auth -->
+    <PackageReference Include="Azure.Identity" Version="1.13.1" />
+    <PackageReference Include="Microsoft.Identity.Web" Version="3.*" />
+    <!-- Microsoft Agent Framework + Azure AI Foundry.
+         NOTE: align these to the latest published versions before building; the agent
+         retrieval surface lives in Microsoft.Agents.AI.AzureAI. Verify the exact API
+         (GetAIAgent / RunAsync) against the installed package version. -->
+    <PackageReference Include="Microsoft.Agents.AI" Version="*" />
+    <PackageReference Include="Microsoft.Agents.AI.AzureAI" Version="*" />
+    <PackageReference Include="Azure.AI.Projects" Version="*" />
+    <PackageReference Include="Azure.AI.Agents.Persistent" Version="*" />
+    <!-- Data + Search -->
+    <PackageReference Include="Microsoft.Azure.Cosmos" Version="3.46.0" />
+    <PackageReference Include="Azure.Search.Documents" Version="11.6.0" />
+    <!-- Safety + Telemetry -->
+    <PackageReference Include="Azure.AI.ContentSafety" Version="1.0.0" />
+    <PackageReference Include="Azure.Monitor.OpenTelemetry.AspNetCore" Version="1.3.0" />
+    <!-- API docs -->
+    <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="9.0.0" />
+  </ItemGroup>
+
+</Project>

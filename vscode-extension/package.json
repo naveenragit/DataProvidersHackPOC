@@ -27,7 +27,10 @@
       { "path": "./.github/agents/fin-task-researcher.agent.md" },
       { "path": "./.github/agents/fin-task-planner.agent.md" },
       { "path": "./.github/agents/fin-task-implementor.agent.md" },
-      { "path": "./.github/agents/fin-task-reviewer.agent.md" }
+      { "path": "./.github/agents/fin-task-reviewer.agent.md" },
+      { "path": "./.github/agents/fin-adversary-architect.agent.md" },
+      { "path": "./.github/agents/fin-adversary-security.agent.md" },
+      { "path": "./.github/agents/fin-adversary-stack.agent.md" }
     ],
     "chatPromptFiles": [
       { "path": "./.github/prompts/fin-task-research.prompt.md" },
@@ -37,7 +40,7 @@
       { "path": "./.github/prompts/scaffold-financial-app.prompt.md" }
     ],
     "chatInstructions": [
-      { "path": "./.github/instructions/coding-standards/python-backend.instructions.md" },
+      { "path": "./.github/instructions/coding-standards/csharp-backend.instructions.md" },
       { "path": "./.github/instructions/coding-standards/react-frontend.instructions.md" },
       { "path": "./.github/instructions/coding-standards/azure-services.instructions.md" },
       { "path": "./.github/instructions/financial-domain/financial-domain.instructions.md" }

@@ -1,0 +1,36 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <IsPackable>false</IsPackable>
+    <RootNamespace>FinancialServices.Tests</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.12.0" />
+    <PackageReference Include="xunit" Version="2.9.2" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.8.2" />
+    <!--
+      FluentAssertions license ceiling: the 6.12.x line is Apache-2.0 (fully free). The
+      [6.12.1,7.0.0) range prevents an automatic bump into v8+, which is commercially licensed
+      (v8.1+ emits a license warning). Keep this ceiling so CI never pulls a paid-license line.
+    -->
+    <PackageReference Include="FluentAssertions" Version="[6.12.1,7.0.0)" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\FinancialServices.Api\FinancialServices.Api.csproj" />
+  </ItemGroup>
+
+  <!--
+    Access the ASP.NET Core shared framework (Microsoft.Extensions.Options / Logging.Abstractions,
+    and WebApplicationFactory later) from this non-Web test project. This is a reference to the
+    already-installed shared framework — it adds ZERO NuGet packages.
+  -->
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+
+</Project>

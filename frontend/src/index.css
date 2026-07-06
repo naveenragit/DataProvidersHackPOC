@@ -1,0 +1,87 @@
+/* frontend/src/index.css — imported in main.tsx: `import './index.css'`.
+   This wires Tailwind AND the shadcn/ui CSS variables. Without the @tailwind directives
+   and the variables below, the app renders as unstyled raw HTML.
+
+   The dark palette (.dark) matches the professional financial dashboard:
+   background ~#0f1117, card ~#1a1f2e, border ~#2a3040, indigo/violet primary. */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 222 24% 11%;
+    --card: 0 0% 100%;
+    --card-foreground: 222 24% 11%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222 24% 11%;
+    --primary: 239 84% 67%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 220 14% 96%;
+    --secondary-foreground: 222 24% 11%;
+    --muted: 220 14% 96%;
+    --muted-foreground: 220 9% 46%;
+    --accent: 220 14% 96%;
+    --accent-foreground: 222 24% 11%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 220 13% 91%;
+    --input: 220 13% 91%;
+    --ring: 239 84% 67%;
+    --success: 142 71% 45%;
+    --warning: 38 92% 50%;
+    --danger: 0 84% 60%;
+    --info: 217 91% 60%;
+    --radius: 0.75rem;
+  }
+
+  /* Dark is the default (html has class="dark") — the professional financial theme */
+  .dark {
+    --background: 222 24% 7%;
+    --foreground: 210 40% 96%;
+    --card: 223 28% 14%;
+    --card-foreground: 210 40% 96%;
+    --popover: 223 30% 12%;
+    --popover-foreground: 210 40% 96%;
+    --primary: 239 84% 67%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 223 24% 18%;
+    --secondary-foreground: 210 40% 96%;
+    --muted: 223 24% 18%;
+    --muted-foreground: 215 20% 65%;
+    --accent: 223 24% 20%;
+    --accent-foreground: 210 40% 96%;
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 223 21% 21%;
+    --input: 223 21% 21%;
+    --ring: 239 84% 67%;
+    --success: 142 69% 58%;
+    --warning: 38 92% 55%;
+    --danger: 0 84% 65%;
+    --info: 217 91% 60%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+  }
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    @apply bg-background;
+  }
+  ::-webkit-scrollbar-thumb {
+    @apply bg-border rounded;
+  }
+}

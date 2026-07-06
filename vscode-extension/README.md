@@ -6,10 +6,11 @@ financial services applications (Capital Markets, Banking, Insurance) on **Micro
 ## What's Included
 
 - **4 RPI Agents** — Fin Task Researcher, Planner, Implementor, Reviewer
-- **4 Instruction sets** — Python/FastAPI, React/TypeScript, Azure services, Financial domain
+- **3 Adversarial red-team Agents** — Fin Adversary Architect, Security, Stack Critic
+- **4 Instruction sets** — C#/ASP.NET Core, React (shadcn/TanStack/CopilotKit), Azure services, Financial domain
 - **5 Prompts** — `/fin-task-research`, `/fin-task-plan`, `/fin-task-implement`, `/fin-task-review`, `/scaffold-financial-app`
 - **2 Skills** — Azure Financial Services patterns, Workflow Visualization
-- **Workflow visualization templates** — Ready-to-use React components
+- **Templates** — shadcn/ui frontend design system, workflow visualization, and a C# API starter
 
 ## Usage
 
@@ -22,5 +23,5 @@ Start a feature with the RPI workflow:
 →  /clear  →  /fin-task-implement   →  /clear  →  /fin-task-review
 ```
 
-All solutions target Python + FastAPI backends, React + TypeScript frontends,
-and Azure Data and AI Services.
+All solutions target C# / ASP.NET Core (.NET 9) backends, React 18 (shadcn/ui, TanStack,
+CopilotKit) frontends, and Azure Data and AI Services.

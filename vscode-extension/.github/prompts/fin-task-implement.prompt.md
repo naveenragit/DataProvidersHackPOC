@@ -18,10 +18,10 @@ Before implementing, verify:
 ## Implementation Rules
 
 1. **Follow the plan exactly** — do not add features not in the plan
-2. **Python backend first** — implement services and routers before frontend
-3. **Types first in TypeScript** — define interfaces before components
+2. **C# backend first** — implement services, agents, and controllers before frontend
+3. **Types and query hooks first in TypeScript** — define interfaces and TanStack Query hooks before components
 4. **Workflow page last** — update `WorkflowPage.tsx` after all feature code is done
-5. **Never hardcode credentials** — always use settings / environment variables
+5. **Never hardcode credentials** — always use bound `IOptions<T>` / environment variables
 6. **Always add PII safety** — add content safety checks on any new user input endpoints
 7. **Always add audit logging** — log all financial data mutations
 

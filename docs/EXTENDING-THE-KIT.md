@@ -30,12 +30,12 @@ If you can answer "yes" to any, you have your next contribution.
 
 | Idea | `applyTo` | Why |
 |---|---|---|
-| **Testing standards** | `**/*.test.ts, **/test_*.py` | Enforce pytest/vitest patterns, coverage expectations, naming |
+| **Testing standards** | `**/*.test.ts, **/*Tests.cs` | Enforce xUnit/vitest patterns, coverage expectations, naming |
 | **Bicep / IaC standards** | `**/*.bicep` | Azure Verified Modules, naming conventions, tagging policy |
 | **Accessibility (a11y)** | `**/*.tsx` | WCAG AA, ARIA roles, keyboard nav for financial dashboards |
-| **API versioning** | `**/routes/**/*.py` | Consistent `/v1/` routing, deprecation headers |
-| **Logging & observability** | `**/*.py` | Structured logs, correlation IDs, no PII in traces |
-| **SQL / Cosmos query standards** | `**/*.py` | Partition key discipline, RU budgeting, parameterized queries |
+| **API versioning** | `**/Controllers/**/*.cs` | Consistent `/api/v1/` routing, deprecation headers |
+| **Logging & observability** | `**/*.cs` | Structured logs, correlation IDs, no PII in traces |
+| **SQL / Cosmos query standards** | `**/*.cs` | Partition key discipline, RU budgeting, parameterized queries |
 
 ### New prompts
 
@@ -60,14 +60,18 @@ The RPI pipeline is just the start. Add specialists that match your team's real 
 |---|---|
 | **Compliance Reviewer** | Audits a feature against MiFID II / Basel / Solvency II requirements |
 | **Data Modeler** | Designs Cosmos containers, partition strategy, and AI Search indexes |
-| **Security Auditor** | Threat-models the change; checks auth, secrets, PII flow, injection |
-| **Cost Optimizer** | Reviews Azure resource choices for RU/token/compute efficiency |
+| **Security Auditor** | Threat-models the change; checks auth, secrets, PII flow, injection || **Cost Optimizer** | Reviews Azure resource choices for RU/token/compute efficiency |
 | **Demo Builder** | Turns a feature into a guided, click-through demo script |
 | **Migration Specialist** | Plans lift-and-shift from legacy stacks (e.g., on-prem, AWS) to Azure |
 | **Performance Engineer** | Profiles hot paths, recommends caching and async patterns |
 
 Each can be wired into the existing pipeline via `handoffs` — e.g., the Reviewer could hand
 off to the Compliance Reviewer for regulated features.
+
+> **Already included:** the kit ships three adversarial **red-team** agents —
+> `Fin Adversary Architect`, `Fin Adversary Security`, and `Fin Adversary Stack Critic` — that
+> attack the design, trust model, and stack-fit against best practices. Run them after the
+> standard review to pressure-test consequential changes.
 
 ### New skills
 

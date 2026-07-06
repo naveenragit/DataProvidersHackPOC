@@ -24,7 +24,7 @@ implementation plan that includes mandatory Workflow visualization updates.
 Create implementation plans that:
 - Reference exact file paths with line numbers
 - Include the Workflow visualization update as a required phase
-- Cover backend (Python/FastAPI), frontend (React/TypeScript), and infrastructure (Azure Bicep)
+- Cover backend (C# / ASP.NET Core), frontend (React 18 / shadcn / TanStack / CopilotKit), and infrastructure (Azure Bicep)
 - Satisfy financial domain security, compliance, and audit requirements
 
 ## Pre-Planning Verification
@@ -49,19 +49,19 @@ Before creating any plan:
 Every plan must contain these phases, in this order:
 
 ### Phase 1: Backend — Models and Configuration
-- Pydantic model definitions
-- Settings additions (`app/infra/settings.py`)
+- DTO / domain model records (`Models/`)
+- Options additions (`Infrastructure/AzureOptions.cs`)
 - Cosmos DB container additions (if needed)
 
 ### Phase 2: Backend — Services and Agents
-- Service layer implementation (`app/services/`)
-- Azure AI Foundry agent definitions (`app/agents/`)
+- Service layer implementation (`Services/`)
+- Microsoft Agent Framework agent definitions (`Agents/`)
 - Cosmos DB query methods
 - Azure AI Search integration
 
 ### Phase 3: Backend — API Routes
-- FastAPI router additions (`app/routers/`)
-- WebSocket endpoints (if real-time feature)
+- ASP.NET Core controller additions (`Controllers/`)
+- SignalR hubs (if real-time feature)
 - Health check updates
 
 ### Phase 4: Backend — Security and Compliance
@@ -69,12 +69,15 @@ Every plan must contain these phases, in this order:
 - Audit logging for new financial operations
 - PII detection/redaction
 
-### Phase 5: Frontend — Types and API Client
+### Phase 5: Frontend — Types and Data Hooks
 - TypeScript interface additions (`src/types/`)
-- API client functions (`src/utils/apiClient.ts`)
+- API client functions (`src/lib/apiClient.ts`)
+- TanStack Query hooks (`src/hooks/`)
 
 ### Phase 6: Frontend — Components
-- New React components (`src/components/`)
+- New React components from shadcn/ui primitives (`src/components/`)
+- TanStack Table grids for tabular data
+- CopilotKit actions/readables where the copilot needs the capability
 - Component unit tests
 
 ### Phase 7: Frontend — Pages
@@ -95,9 +98,9 @@ Every plan must contain these phases, in this order:
 - Add new configuration fields to `SettingsPage.tsx` if new settings required
 
 ### Phase 11: Tests
-- Backend service unit tests (`tests/unit/`)
-- Backend API integration tests (`tests/integration/`)
-- Frontend component tests
+- Backend service unit tests (`FinancialServices.Tests/`, xUnit)
+- Backend API integration tests (`WebApplicationFactory<Program>`)
+- Frontend component tests (vitest)
 
 ## Plan Document Format
 
@@ -112,11 +115,11 @@ Every plan must contain these phases, in this order:
 ## Phases
 
 ### Phase 1: Backend — Models and Configuration
-- [ ] **Task 1.1** Add `{ModelName}` to `backend/app/models/{domain}_models.py` (new file)
+- [ ] **Task 1.1** Add `{ModelName}` record to `backend/FinancialServices.Api/Models/{Domain}Models.cs` (new file)
   - Fields: {list with types}
   - Validation: {rules}
-- [ ] **Task 1.2** Add `{setting_name}` to `backend/app/infra/settings.py` L{n}
-  - Type: `str`, Env var: `AZURE_{NAME}`
+- [ ] **Task 1.2** Add `{SettingName}` to `backend/FinancialServices.Api/Infrastructure/AzureOptions.cs` L{n}
+  - Type: `string`, Env var: `AZURE__{Name}`
 
 ### Phase 8: Workflow Visualization (REQUIRED)
 - [ ] **Task 8.1** Add node definitions to `frontend/src/data/workflowData.ts`
@@ -131,7 +134,7 @@ Every plan must contain these phases, in this order:
 ## File Change Summary
 | File | Action | Description |
 |---|---|---|
-| `backend/app/agents/{name}_agent.py` | Create | {description} |
+| `backend/FinancialServices.Api/Agents/{Name}Agent.cs` | Create | {description} |
 | `frontend/src/pages/WorkflowPage.tsx` | Modify | Add {N} nodes, {M} connections |
 ```
 
@@ -145,13 +148,13 @@ When planning the Workflow page update, specify each new node completely:
   id: '{unique-id}',
   type: 'agent',           // 'service' | 'agent' | 'gate' | 'datastore' | 'outcome'
   label: '{Display Name}',
-  subtitle: 'agent · {filename}.py',
+  subtitle: 'agent · {Name}Agent.cs',
   position: { x: 400, y: 300 },
   detail: {
     title: '{Display Name}',
-    subtitle: 'agent · {filename}.py',
+    subtitle: 'agent · {Name}Agent.cs',
     description: '{What this agent does in 2-3 sentences}',
-    sourceFiles: ['backend/app/agents/{filename}.py'],
+    sourceFiles: ['backend/FinancialServices.Api/Agents/{Name}Agent.cs'],
     responsibilities: [
       '* {responsibility 1}',
       '* {responsibility 2}',

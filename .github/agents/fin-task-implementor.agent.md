@@ -1,6 +1,6 @@
 ---
 name: Fin Task Implementor
-description: "Financial domain implementation specialist that executes plans for Python/FastAPI backends, React frontends, and Azure service integrations"
+description: "Financial domain implementation specialist that executes plans for C#/ASP.NET Core backends, React frontends, and Azure service integrations"
 agents:
   - Explore
 handoffs:
@@ -23,8 +23,8 @@ visualization update as the final step.
 ## Purpose
 
 Implement exactly what the plan specifies:
-- Python/FastAPI backend with Azure SDK integrations
-- React/TypeScript frontend with dark financial UI
+- C# / ASP.NET Core (.NET 9) backend with Azure SDK integrations and Microsoft Agent Framework agents
+- React 18 frontend (shadcn/ui, TanStack Query + Table, CopilotKit, Tailwind) with a dark financial UI
 - Workflow visualization updates in `WorkflowPage.tsx`
 - Security and compliance requirements for regulated financial data
 
@@ -43,12 +43,13 @@ Before starting:
 - Read existing files before modifying them
 - Use the exact file paths specified in the plan
 - Follow the `.github/copilot-instructions.md` coding standards
-- All Python dependencies are installed into a project-local `.venv` (never globally)
-- A `.gitignore` excluding `.venv/`, caches, and `.env` exists (create it if missing)
-- `run-backend.bat` and `run-frontend.bat` exist at the repo root (create them if missing)
-- All Python code is `async` where I/O is involved
+- The backend builds cleanly with `dotnet build` (nullable + warnings-as-errors on)
+- A `.gitignore` excluding `bin/`, `obj/`, and `.env` exists (create it if missing)
+- `run-backend.bat`, `run-copilot-runtime.bat`, and `run-frontend.bat` exist at the repo root (create them if missing)
+- All C# I/O is `async` with a `CancellationToken` plumbed through
 - All TypeScript has proper types — no `any`
 - All Azure clients use `DefaultAzureCredential`
+- Server state uses TanStack Query hooks (no `useEffect` fetching); UI uses shadcn/ui primitives
 - Content Safety checked on all new user text inputs
 - Audit logging added to all new financial data mutations
 
@@ -66,10 +67,10 @@ Before starting:
 The value of the implementation is in **real, plugged-in Azure services**. Build for live
 Azure from the start — never mocks or fallbacks in application code.
 
-- Wire every agent, Cosmos, AI Search, Content Safety, Speech, and grounding/Bing call to a
-  **real Azure resource** via `DefaultAzureCredential` and `.env` configuration.
+- Wire every agent, Cosmos, AI Search, Content Safety, Speech, and grounding call to a
+  **real Azure resource** via `DefaultAzureCredential` and bound `IOptions<T>` configuration.
 - **No mock data, stub clients, or fake responses** in runtime code paths. Mocks/fakes belong
-  only in automated test files (`pytest`, `vitest`).
+  only in automated test files (`xUnit`, `vitest`).
 - **No silent fallbacks.** If a required setting is missing or a service call fails, raise a
   clear error naming the missing `.env` variable or the failing service — do not return canned data.
 - Before claiming a feature works, it must be **exercised against live Azure resources**. If
@@ -101,40 +102,42 @@ For each task in the plan:
 6. Mark: Update task in plan from [~] to [x] (complete)
 ```
 
-## Python Implementation Guidelines
+## C# Backend Implementation Guidelines
 
 ### Environment Setup (do this first for any backend work)
 
-Before installing packages or running backend code, ensure a project-local `.venv` exists
-and a `.gitignore` is in place:
+Before running backend code, restore and build the solution and ensure a `.gitignore` is in place:
 
 ```powershell
 # From the backend/ folder
-python -m venv .venv
-.\.venv\Scripts\Activate.ps1
-python -m pip install --upgrade pip
-pip install -r requirements.txt
+dotnet restore
+dotnet build   # must succeed with nullable + warnings-as-errors on
 ```
 
-- Always install dependencies into `.venv` — never globally or into the system interpreter.
-- Create a `.gitignore` (per `python-backend.instructions.md`) that excludes `.venv/`,
-  `__pycache__/`, caches, and `.env` if one does not already exist.
+- Add NuGet packages with `dotnet add package` — never hand-edit versions to unlisted values.
+- Create a `.gitignore` (per `csharp-backend.instructions.md`) that excludes `bin/`, `obj/`,
+  and `.env` if one does not already exist.
 
 ### Root run scripts (create if missing)
 
-Ensure these two batch files exist at the **repo root** so the app can be run by executing them.
+Ensure these batch files exist at the **repo root** so the app can be run by executing them.
 
-`run-backend.bat` — creates/activates `.venv`, installs deps, runs Uvicorn:
+`run-backend.bat` — restores and runs the ASP.NET Core API:
 ```bat
 @echo off
 cd /d "%~dp0backend"
-if not exist .venv (
-    python -m venv .venv
+dotnet restore
+dotnet run --project FinancialServices.Api --urls http://0.0.0.0:8000
+```
+
+`run-copilot-runtime.bat` — installs deps and runs the CopilotKit Node sidecar:
+```bat
+@echo off
+cd /d "%~dp0copilot-runtime"
+if not exist node_modules (
+    npm install
 )
-call .venv\Scripts\activate.bat
-python -m pip install --upgrade pip
-pip install -r requirements.txt
-uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+npm run dev
 ```
 
 `run-frontend.bat` — installs node modules and runs Vite:
@@ -149,108 +152,109 @@ npm run dev
 
 ### Creating a New Agent File
 
-```python
-# backend/app/agents/{name}_agent.py
-"""
-{AgentName}: {One-line description of what this agent does}
+```csharp
+// backend/FinancialServices.Api/Agents/{Name}Agent.cs
+using System.Diagnostics;
+using Azure.AI.Projects;
+using Azure.Identity;
+using Microsoft.Agents.AI;
+using Microsoft.Extensions.Options;
+using FinancialServices.Api.Infrastructure;
 
-Responsibilities:
-- {responsibility 1}
-- {responsibility 2}
-"""
-from __future__ import annotations
+namespace FinancialServices.Api.Agents;
 
-import logging
-from azure.ai.projects.aio import AIProjectClient
-from azure.identity.aio import DefaultAzureCredential
-from opentelemetry import trace
+/// <summary>{AgentName}: {one-line description}.</summary>
+public sealed class {Name}Agent(
+    IOptions<AzureOptions> options,
+    ILogger<{Name}Agent> logger)
+{
+    private static readonly ActivitySource Activity = new("FinancialServices.Agents");
+    private readonly AzureOptions _options = options.Value;
 
-from app.infra.settings import get_settings
-
-logger = logging.getLogger(__name__)
-tracer = trace.get_tracer(__name__)
-settings = get_settings()
-
-
-async def run_{name}_agent(input_data: dict) -> dict:
-    """Run the {name} agent."""
-    with tracer.start_as_current_span("{name}_agent") as span:
-        span.set_attribute("session.id", input_data.get("session_id", ""))
-        
-        credential = DefaultAzureCredential()
-        async with AIProjectClient(
-            endpoint=settings.azure_ai_project_endpoint,
-            credential=credential,
-        ) as client:
-            # Implementation per research document
-            ...
+    public async Task<string> RunAsync(string input, CancellationToken ct)
+    {
+        using var span = Activity.StartActivity("{Name}Agent.Run");
+        var project = new AIProjectClient(
+            new Uri(_options.AiProjectEndpoint), new DefaultAzureCredential());
+        AIAgent agent = await project.GetAIAgentAsync("{Name}Agent", cancellationToken: ct);
+        AgentRunResponse response = await agent.RunAsync(input, cancellationToken: ct);
+        return response.Text;
+    }
+}
 ```
 
-### Creating a New Router File
+### Creating a New Controller File
 
-```python
-# backend/app/routers/{domain}.py
-from fastapi import APIRouter, Depends, HTTPException, status, BackgroundTasks
-from app.models.{domain}_models import {RequestModel}, {ResponseModel}
-from app.services.{domain}_service import {DomainService}
-from app.infra.settings import Settings, get_settings
+```csharp
+// backend/FinancialServices.Api/Controllers/{Domain}Controller.cs
+using FinancialServices.Api.Models;
+using FinancialServices.Api.Services;
+using Microsoft.AspNetCore.Mvc;
 
-router = APIRouter(prefix="/{domain}s", tags=["{domain}"])
+namespace FinancialServices.Api.Controllers;
+
+[ApiController]
+[Route("api/v1/{domain}s")]
+public sealed class {Domain}Controller(I{Domain}Service service) : ControllerBase
+{
+    // endpoints per plan — always accept and propagate CancellationToken
+}
 ```
 
 ## Frontend Implementation Guidelines
 
-### Frontend styling setup (do FIRST for any frontend work)
+### Frontend setup (do FIRST for any frontend work)
 
-Before building any page, wire up Tailwind or the UI will render as **unstyled raw HTML**
-(white background, serif fonts, plain inputs). Copy the known-good files from
+Before building any page, wire up Tailwind + shadcn/ui or the UI will render as **unstyled raw
+HTML** (white background, serif fonts, plain inputs). Copy the known-good files from
 `templates/frontend-design-system/`:
 
-1. `npm install -D tailwindcss@^3 postcss autoprefixer clsx`
-2. Copy `tailwind.config.js` and `postcss.config.js` to `frontend/`
-3. Copy `index.css` to `frontend/src/` and ensure `main.tsx` has `import './index.css'`
-4. Copy `AppLayout.tsx` and `Sidebar.tsx` into `frontend/src/components/layout/`
-5. Run `npm run dev` and **visually verify** a dark `#0f1117` background, Inter font, left
-   sidebar, and rounded cards render. If the page is white/serif/unstyled, fix the config
-   before building any further — do not proceed with an unstyled app.
+1. Install deps: `npm install react-router-dom lucide-react class-variance-authority clsx tailwind-merge @tanstack/react-query @tanstack/react-table @copilotkit/react-core @copilotkit/react-ui` and `npm install -D tailwindcss@^3 postcss autoprefixer tailwindcss-animate`
+2. Initialize shadcn/ui: `npx shadcn@latest init` (dark, CSS variables) — creates `components.json` and `src/lib/utils.ts`
+3. Copy `tailwind.config.js`, `postcss.config.js`, and `index.css` (shadcn CSS variables) into `frontend/`; ensure `main.tsx` imports `./index.css`
+4. Copy `App.tsx` (CopilotKit + QueryClientProvider), `AppLayout.tsx`, and `Sidebar.tsx`
+5. Run `npm run dev` and **visually verify** a dark background, Inter font, left sidebar, and
+   rounded shadcn cards render. If the page is white/serif/unstyled, fix the config before
+   building further — do not proceed with an unstyled app.
 
-Use the semantic tokens and component classes (`.card`, `.btn-primary`, `.input`,
-`.badge-*`, `.stat-card`, `.section-title`) — never inline hex or raw `slate-*` classes.
+Use shadcn tokens (`bg-background`, `bg-card`, `border-border`, `text-foreground`,
+`text-muted-foreground`, `bg-primary`) — never inline hex or raw `slate-*` classes.
 
 ### Creating a New Page Component
 
+Fetch server state with a TanStack Query hook (never `useEffect`), and compose the UI from
+shadcn/ui primitives.
+
 ```tsx
 // frontend/src/pages/{Domain}/{PageName}.tsx
-import { useState, useEffect } from 'react'
-import { {Icon} } from 'lucide-react'
-import { apiGet } from '@/utils/apiClient'
-import type { {DataType} } from '@/types'
+import { Loader2 } from 'lucide-react'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { usePortfolio } from '@/hooks/usePortfolio'
 
-export default function {PageName}Page() {
-  const [data, setData] = useState<{DataType} | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+export default function {PageName}Page({ id }: { id: string }) {
+  const { data, isPending, isError, error } = usePortfolio(id)
 
-  useEffect(() => {
-    apiGet<{DataType}>('/{endpoint}')
-      .then(setData)
-      .catch(err => setError(err.message))
-      .finally(() => setLoading(false))
-  }, [])
-
-  if (loading) return <div className="flex items-center justify-center h-64">
-    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-500" />
-  </div>
-
-  if (error) return <div className="text-red-400 bg-red-500/10 border border-red-500/20 rounded-lg p-4">{error}</div>
+  if (isPending) return (
+    <div className="flex h-64 items-center justify-center">
+      <Loader2 className="h-6 w-6 animate-spin text-primary" />
+    </div>
+  )
+  if (isError) return (
+    <div className="rounded-lg border border-destructive/30 bg-destructive/10 p-4 text-destructive">
+      {(error as Error).message}
+    </div>
+  )
 
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-white">{Page Title}</h1>
-        <p className="text-slate-400 mt-1">{Description}</p>
+        <h1 className="text-2xl font-bold text-foreground">{'{Page Title}'}</h1>
+        <p className="mt-1 text-muted-foreground">{'{Description}'}</p>
       </div>
-      {/* Page content */}
+      <Card>
+        <CardHeader><CardTitle>Overview</CardTitle></CardHeader>
+        <CardContent>{/* content */}</CardContent>
+      </Card>
     </div>
   )
 }
@@ -279,12 +283,12 @@ When implementing the Workflow page update (always last):
 ## Files Created
 | File | Description |
 |---|---|
-| `backend/app/agents/{name}_agent.py` | {description} |
+| `backend/FinancialServices.Api/Agents/{Name}Agent.cs` | {description} |
 
 ## Files Modified
 | File | Changes |
 |---|---|
-| `backend/app/infra/settings.py` | Added {N} new Azure config fields |
+| `backend/FinancialServices.Api/Infrastructure/AzureOptions.cs` | Added {N} new Azure config fields |
 | `frontend/src/pages/WorkflowPage.tsx` | Added {N} nodes, {M} connections |
 
 ## Plan Deviations

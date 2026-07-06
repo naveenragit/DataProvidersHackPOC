@@ -1,0 +1,13 @@
+<Project>
+
+  <!--
+    Repo-wide quality gate (architecturalPlan/11-testing-and-quality): every project under
+    backend/ — including FinancialServices.Tests — compiles with nullable reference types on
+    and warnings treated as errors. Per-project duplicates of these settings are harmless.
+  -->
+  <PropertyGroup>
+    <Nullable>enable</Nullable>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+  </PropertyGroup>
+
+</Project>

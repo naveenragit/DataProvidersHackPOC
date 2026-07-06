@@ -1,19 +1,21 @@
 // Copy to frontend/src/components/ui/PageHeader.tsx
-// Standard page header: title (text-xl) + muted subtitle. Use at the top of every page.
+// Standard page header: title + muted subtitle + optional actions. Use atop every page.
+import type { ReactNode } from 'react'
+
 interface PageHeaderProps {
   title: string
   subtitle?: string
-  actions?: React.ReactNode
+  actions?: ReactNode
 }
 
-export default function PageHeader({ title, subtitle, actions }: PageHeaderProps) {
+export function PageHeader({ title, subtitle, actions }: PageHeaderProps) {
   return (
     <div className="flex items-start justify-between gap-4">
       <div>
-        <h2 className="text-xl font-semibold text-gray-100">{title}</h2>
-        {subtitle && <p className="text-sm text-gray-500 mt-0.5">{subtitle}</p>}
+        <h2 className="text-xl font-semibold text-foreground">{title}</h2>
+        {subtitle && <p className="mt-0.5 text-sm text-muted-foreground">{subtitle}</p>}
       </div>
-      {actions && <div className="flex items-center gap-2 shrink-0">{actions}</div>}
+      {actions && <div className="flex shrink-0 items-center gap-2">{actions}</div>}
     </div>
   )
 }

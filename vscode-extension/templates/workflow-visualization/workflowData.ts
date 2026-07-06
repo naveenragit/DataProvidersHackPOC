@@ -25,7 +25,7 @@ export const workflowTabs: WorkflowTab[] = [
           subtitle: 'meeting · session trigger',
           description:
             'Entry point triggered when an advisor initiates a new client meeting session. Generates a session ID, persists the session record to Cosmos DB, and fires pre-meeting intelligence preparation.',
-          sourceFiles: ['backend/app/routers/meetings.py'],
+          sourceFiles: ['backend/FinancialServices.Api/Controllers/MeetingsController.cs'],
           responsibilities: [
             'Accept session start request from the React frontend',
             'Generate a unique session_id',
@@ -37,7 +37,7 @@ export const workflowTabs: WorkflowTab[] = [
             '2. Session record written to Cosmos DB',
             '3. Pre-Meeting Prep pipeline invoked',
           ],
-          technologies: ['FastAPI', 'Azure Cosmos DB', 'Pydantic v2'],
+          technologies: ['ASP.NET Core', 'Azure Cosmos DB', 'records'],
         },
       },
 
@@ -46,16 +46,16 @@ export const workflowTabs: WorkflowTab[] = [
         id: 'pre-meeting-prep',
         type: 'service',
         label: 'Pre-Meeting Prep',
-        subtitle: 'service · advisory_workflow.py',
+        subtitle: 'service · AdvisoryWorkflow.cs',
         position: { x: 240, y: 160 },
         detail: {
           title: 'Pre-Meeting Prep',
-          subtitle: 'service · advisory_workflow.py',
+          subtitle: 'service · AdvisoryWorkflow.cs',
           description:
             'Orchestrates parallel pre-meeting intelligence: news scan for client holdings, tax situation analysis, and relationship deepening ideas — aggregated into a single structured advisor briefing.',
-          sourceFiles: ['backend/app/orchestration/advisory_workflow.py'],
+          sourceFiles: ['backend/FinancialServices.Api/Orchestration/AdvisoryWorkflow.cs'],
           responsibilities: [
-            'Run NewsAgent, TaxAgent, and AdvisoryAgent concurrently via asyncio.gather',
+            'Run NewsAgent, TaxAgent, and AdvisoryAgent concurrently via Task.WhenAll',
             'Merge results into a unified pre_meeting_briefing object',
             'Persist briefing to Cosmos DB for advisor retrieval before the meeting',
             'Log the advisory run to the audit trail',
@@ -66,7 +66,7 @@ export const workflowTabs: WorkflowTab[] = [
             '3. Merges results into pre_meeting_briefing',
             '4. Saves briefing to Cosmos DB sessions container',
           ],
-          technologies: ['asyncio', 'Azure AI Foundry', 'Azure Cosmos DB'],
+          technologies: ['Microsoft Agent Framework', 'Azure AI Foundry', 'Azure Cosmos DB'],
         },
       },
 
@@ -75,14 +75,14 @@ export const workflowTabs: WorkflowTab[] = [
         id: 'news-agent',
         type: 'agent',
         label: 'News Agent',
-        subtitle: 'agent · news_agent.py',
+        subtitle: 'agent · NewsAgent.cs',
         position: { x: 80, y: 300 },
         detail: {
           title: 'News Agent',
-          subtitle: 'agent · news_agent.py',
+          subtitle: 'agent · NewsAgent.cs',
           description:
             'Scans recent financial news relevant to the client\'s portfolio holdings using Bing Grounding. Identifies material events — earnings surprises, credit rating changes, regulatory actions — that may require advisor attention.',
-          sourceFiles: ['backend/app/agents/news_agent.py'],
+          sourceFiles: ['backend/FinancialServices.Api/Agents/NewsAgent.cs'],
           responsibilities: [
             'Retrieve client holdings from Cosmos DB',
             'Query Bing for recent news on each holding',
@@ -105,14 +105,14 @@ export const workflowTabs: WorkflowTab[] = [
         id: 'advisory-agent',
         type: 'agent',
         label: 'Advisory Agent',
-        subtitle: 'agent · advisory_agent.py',
+        subtitle: 'agent · AdvisoryAgent.cs',
         position: { x: 460, y: 300 },
         detail: {
           title: 'Advisory Agent',
-          subtitle: 'agent · advisory_agent.py',
+          subtitle: 'agent · AdvisoryAgent.cs',
           description:
             'Analyzes the client\'s portfolio composition, recent life events, and risk profile to generate relationship deepening ideas and potential discussion topics for the advisor.',
-          sourceFiles: ['backend/app/agents/advisory_agent.py'],
+          sourceFiles: ['backend/FinancialServices.Api/Agents/AdvisoryAgent.cs'],
           responsibilities: [
             'Read client profile and portfolio from Cosmos DB',
             'Analyze life events, goals, and risk tolerance',
@@ -144,14 +144,14 @@ export const workflowTabs: WorkflowTab[] = [
           responsibilities: [
             'Display pre-meeting briefing to advisor',
             'Wait for advisor to click "Start Session"',
-            'Activate WebSocket connections for real-time processing',
+            'Activate SignalR connections for real-time processing',
           ],
           dataFlow: [
             '1. Advisor reviews briefing in the UI',
             '2. Advisor clicks Start Session',
-            '3. WebSocket connections established for Transcription, Sentiment, Recommendations',
+            '3. SignalR connections established for Transcription, Sentiment, Recommendations',
           ],
-          technologies: ['React', 'WebSocket', 'FastAPI'],
+          technologies: ['React', 'SignalR', 'ASP.NET Core'],
         },
       },
 
@@ -160,26 +160,26 @@ export const workflowTabs: WorkflowTab[] = [
         id: 'transcription-agent',
         type: 'agent',
         label: 'Transcription Agent',
-        subtitle: 'agent · transcription_agent.py',
+        subtitle: 'agent · TranscriptionAgent.cs',
         position: { x: 280, y: 580 },
         detail: {
           title: 'Transcription Agent',
-          subtitle: 'agent · transcription_agent.py',
+          subtitle: 'agent · TranscriptionAgent.cs',
           description:
             'Converts live meeting audio to structured transcript segments using Azure Speech Services. Identifies advisor and client speakers. Optimized with financial terminology phrase lists.',
-          sourceFiles: ['backend/app/agents/transcription_agent.py'],
+          sourceFiles: ['backend/FinancialServices.Api/Agents/TranscriptionAgent.cs'],
           responsibilities: [
-            'Stream audio from browser via WebSocket',
+            'Stream audio from browser via SignalR',
             'Transcribe using Azure Speech with speaker diarization',
             'Return interim and final transcript segments with timestamps',
             'Apply financial terminology phrase list for accuracy',
           ],
           dataFlow: [
-            '1. Receives PCM audio chunks via WebSocket /ws/transcribe/{session_id}',
+            '1. Receives PCM audio chunks via SignalR hub /hubs/transcription',
             '2. Sends to Azure Speech Services (streaming)',
             '3. Returns transcript_chunk events: text, speaker, timestamp, is_final',
           ],
-          technologies: ['Azure Speech Services', 'WebSocket', 'Speaker Diarization'],
+          technologies: ['Azure Speech Services', 'SignalR', 'Speaker Diarization'],
         },
       },
 
@@ -188,14 +188,14 @@ export const workflowTabs: WorkflowTab[] = [
         id: 'pii-agent',
         type: 'agent',
         label: 'PII Redaction',
-        subtitle: 'agent · pii_agent.py',
+        subtitle: 'agent · PiiRedactionAgent.cs',
         position: { x: 280, y: 700 },
         detail: {
           title: 'PII Redaction',
-          subtitle: 'agent · pii_agent.py',
+          subtitle: 'agent · PiiRedactionAgent.cs',
           description:
             'Detects and redacts personally identifiable information from transcript segments before downstream processing. Ensures compliance with GDPR and financial data privacy regulations.',
-          sourceFiles: ['backend/app/agents/pii_agent.py'],
+          sourceFiles: ['backend/FinancialServices.Api/Agents/PiiRedactionAgent.cs'],
           responsibilities: [
             'Detect PII entities: names, account numbers, SSN, DOB, addresses',
             'Redact or mask detected entities',
@@ -216,40 +216,40 @@ export const workflowTabs: WorkflowTab[] = [
         id: 'sentiment-agent',
         type: 'agent',
         label: 'Sentiment Agent',
-        subtitle: 'agent · sentiment_agent.py',
+        subtitle: 'agent · SentimentAgent.cs',
         position: { x: 60, y: 840 },
         detail: {
           title: 'Sentiment Agent',
-          subtitle: 'agent · sentiment_agent.py',
+          subtitle: 'agent · SentimentAgent.cs',
           description:
             'Analyzes the emotional tone of the meeting conversation in real time. Tracks advisor and client sentiment across the meeting timeline to flag emotional inflection points.',
-          sourceFiles: ['backend/app/agents/sentiment_agent.py'],
+          sourceFiles: ['backend/FinancialServices.Api/Agents/SentimentAgent.cs'],
           responsibilities: [
             'Analyze sentiment per transcript segment',
             'Track overall and per-speaker sentiment trend',
             'Detect significant sentiment shifts',
-            'Return structured sentiment scores via WebSocket',
+            'Return structured sentiment scores via SignalR',
           ],
           dataFlow: [
             '1. Receives redacted transcript segment',
             '2. Analyzes via Azure AI Language sentiment',
-            '3. Emits sentiment_update event via WebSocket',
+            '3. Emits sentiment_update event via SignalR',
           ],
-          technologies: ['Azure AI Language', 'Sentiment Analysis', 'WebSocket'],
+          technologies: ['Azure AI Language', 'Sentiment Analysis', 'SignalR'],
         },
       },
       {
         id: 'profile-agent',
         type: 'agent',
         label: 'Profile Agent',
-        subtitle: 'agent · profile_agent.py',
+        subtitle: 'agent · ProfileAgent.cs',
         position: { x: 280, y: 840 },
         detail: {
           title: 'Profile Agent',
-          subtitle: 'agent · profile_agent.py',
+          subtitle: 'agent · ProfileAgent.cs',
           description:
             'Extracts structured client profile updates from the live meeting conversation: new goals, life events, risk preference changes, and asset mentions to enrich the Cosmos DB client record post-meeting.',
-          sourceFiles: ['backend/app/agents/profile_agent.py'],
+          sourceFiles: ['backend/FinancialServices.Api/Agents/ProfileAgent.cs'],
           responsibilities: [
             'Extract goals, life events, risk changes from conversation',
             'Build profile_extractions document with source quote attribution',
@@ -262,7 +262,7 @@ export const workflowTabs: WorkflowTab[] = [
             '3. profile_extractions document built with source-quote attribution',
             '4. Client record updated in Cosmos DB clients container post-meeting',
           ],
-          technologies: ['Azure AI Foundry', 'GPT-4.1', 'Azure Cosmos DB', 'Pydantic'],
+          technologies: ['Azure AI Foundry', 'GPT-4.1', 'Azure Cosmos DB', 'records'],
           keyFacts: [
             'Delta-only updates — only changed fields written back to client document',
             'Source quote preserved for every extraction for compliance verification',
@@ -274,14 +274,14 @@ export const workflowTabs: WorkflowTab[] = [
         id: 'recommendation-agent',
         type: 'agent',
         label: 'Recommendation Agent',
-        subtitle: 'agent · recommendation_agent.py',
+        subtitle: 'agent · RecommendationAgent.cs',
         position: { x: 500, y: 840 },
         detail: {
           title: 'Recommendation Agent',
-          subtitle: 'agent · recommendation_agent.py',
+          subtitle: 'agent · RecommendationAgent.cs',
           description:
             'Generates real-time investment recommendations based on the meeting conversation, client portfolio, and market context. All recommendations include rationale and supporting data for suitability review.',
-          sourceFiles: ['backend/app/agents/recommendation_agent.py'],
+          sourceFiles: ['backend/FinancialServices.Api/Agents/RecommendationAgent.cs'],
           responsibilities: [
             'Monitor conversation for actionable investment signals',
             'Cross-reference signals with client portfolio and risk profile',
@@ -292,7 +292,7 @@ export const workflowTabs: WorkflowTab[] = [
             '1. Receives redacted transcript + sentiment signals',
             '2. Queries portfolio context from Cosmos DB',
             '3. Generates recommendations via Azure AI Foundry (o4-mini)',
-            '4. Emits recommendations_update event via WebSocket',
+            '4. Emits recommendations_update event via SignalR',
           ],
           technologies: ['Azure AI Foundry', 'o4-mini', 'Azure Cosmos DB'],
           keyFacts: [
@@ -315,7 +315,7 @@ export const workflowTabs: WorkflowTab[] = [
           subtitle: 'human in the loop',
           description:
             'Human-in-the-loop approval gate. The advisor reviews AI-generated recommendations before they are logged or shared with the client. Approved recommendations are persisted to the session record.',
-          sourceFiles: ['frontend/src/components/RecommendationCards.tsx', 'backend/app/routers/meetings.py'],
+          sourceFiles: ['frontend/src/components/RecommendationCards.tsx', 'backend/FinancialServices.Api/Controllers/MeetingsController.cs'],
           responsibilities: [
             'Present recommendations to advisor for review',
             'Allow advisor to approve, modify, or reject each recommendation',
@@ -328,7 +328,7 @@ export const workflowTabs: WorkflowTab[] = [
             '3. gate_1_approved = true recorded in Cosmos DB',
             '4. Triggers Summary Agent pipeline',
           ],
-          technologies: ['React', 'FastAPI', 'Azure Cosmos DB', 'Audit Logging'],
+          technologies: ['React', 'ASP.NET Core', 'Azure Cosmos DB', 'Audit Logging'],
         },
       },
     ],

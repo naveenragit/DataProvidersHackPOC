@@ -1,54 +1,63 @@
-// Example of a properly styled page using the design system.
-// Compare against an UNSTYLED page: if inputs look like plain browser boxes and the
-// background is white with serif fonts, Tailwind is NOT wired up — fix the config first.
-import { useState } from 'react'
+// Example of a properly styled page using shadcn/ui primitives.
+// If inputs look like plain browser boxes and the background is white with serif fonts,
+// Tailwind + shadcn are NOT wired up — fix the config first.
+//
+// shadcn primitives used (add once):
+//   npx shadcn@latest add card button input textarea label badge
+import { useMutation } from '@tanstack/react-query'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent } from '@/components/ui/card'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Textarea } from '@/components/ui/textarea'
+import { PageHeader } from '@/components/ui/PageHeader'
+import { apiPost } from '@/lib/apiClient'
 
 export default function ExampleFormPage() {
-  const [submitting, setSubmitting] = useState(false)
+  // Mutations go through TanStack Query — never a raw fetch in an event handler.
+  const submit = useMutation({
+    mutationFn: (body: Record<string, unknown>) => apiPost('/loans/assess', body),
+  })
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-semibold text-gray-100">New Loan Application</h1>
-        <p className="text-gray-500 mt-1 text-sm">
-          Submit borrower details to run the credit risk pipeline.
-        </p>
-      </div>
+      <PageHeader title="New Loan Application" subtitle="Submit borrower details to run the credit risk pipeline." />
 
-      <div className="card max-w-2xl space-y-4">
-        <div>
-          <label className="section-title block">Company name</label>
-          <input className="input" placeholder="Acme Manufacturing Inc." />
-        </div>
-
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <label className="section-title block">Loan amount</label>
-            <input className="input" placeholder="$2,500,000" />
+      <Card className="max-w-2xl">
+        <CardContent className="space-y-4 p-6">
+          <div className="space-y-1.5">
+            <Label htmlFor="company">Company name</Label>
+            <Input id="company" placeholder="Acme Manufacturing Inc." />
           </div>
-          <div>
-            <label className="section-title block">Loan purpose</label>
-            <input className="input" placeholder="Working capital" />
+
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-1.5">
+              <Label htmlFor="amount">Loan amount</Label>
+              <Input id="amount" placeholder="$2,500,000" />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="purpose">Loan purpose</Label>
+              <Input id="purpose" placeholder="Working capital" />
+            </div>
           </div>
-        </div>
 
-        <div>
-          <label className="section-title block">Financial statements</label>
-          <textarea className="input min-h-[140px] resize-y" placeholder="Paste financials..." />
-        </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="financials">Financial statements</Label>
+            <Textarea id="financials" className="min-h-[140px] resize-y" placeholder="Paste financials..." />
+          </div>
 
-        <div className="flex items-center gap-3 pt-2">
-          <button
-            className="btn-primary"
-            disabled={submitting}
-            onClick={() => setSubmitting(true)}
-          >
-            {submitting ? 'Submitting...' : 'Submit for assessment'}
-          </button>
-          <button className="btn-secondary">Cancel</button>
-          <span className="badge-info ml-auto">Live Azure</span>
-        </div>
-      </div>
+          <div className="flex items-center gap-3 pt-2">
+            <Button disabled={submit.isPending} onClick={() => submit.mutate({})}>
+              {submit.isPending ? 'Submitting...' : 'Submit for assessment'}
+            </Button>
+            <Button variant="secondary">Cancel</Button>
+            <Badge variant="outline" className="ml-auto border-info/40 text-info">
+              Live Azure
+            </Badge>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   )
 }

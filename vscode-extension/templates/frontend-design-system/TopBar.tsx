@@ -1,7 +1,8 @@
 // Copy to frontend/src/components/layout/TopBar.tsx
-// The top bar (h-16) carries the page title + a platform badge and live status pills.
-// Map each route base to a human title in TITLES.
+// Top bar (h-16): page title + platform badge + a live status pill.
+// Uses the shadcn Badge primitive — add it with: npx shadcn@latest add badge
 import { useLocation } from 'react-router-dom'
+import { Badge } from '@/components/ui/badge'
 
 const TITLES: Record<string, string> = {
   '/': 'Dashboard',
@@ -11,23 +12,23 @@ const TITLES: Record<string, string> = {
   '/settings': 'Settings',
 }
 
-export default function TopBar() {
+export function TopBar() {
   const { pathname } = useLocation()
   const base = '/' + pathname.split('/')[1]
   const title = TITLES[base] ?? 'Financial AI'
 
   return (
-    <header className="h-16 flex items-center justify-between px-6 bg-surface-100 border-b border-border shrink-0">
+    <header className="flex h-16 shrink-0 items-center justify-between border-b border-border bg-card px-6">
       <div className="flex items-center gap-3">
-        <h1 className="text-base font-semibold text-gray-100">{title}</h1>
-        <span className="badge-gold">Azure AI Foundry</span>
+        <h1 className="text-base font-semibold text-foreground">{title}</h1>
+        <Badge variant="outline" className="border-brand-gold/40 text-brand-gold">
+          Azure AI Foundry
+        </Badge>
       </div>
 
-      <div className="flex items-center gap-3">
-        <div className="flex items-center gap-1.5 bg-surface-50 border border-border rounded-full px-3 py-1">
-          <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse" />
-          <span className="text-xs text-gray-400">Agents online</span>
-        </div>
+      <div className="flex items-center gap-1.5 rounded-full border border-border bg-muted px-3 py-1">
+        <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-success" />
+        <span className="text-xs text-muted-foreground">Agents online</span>
       </div>
     </header>
   )

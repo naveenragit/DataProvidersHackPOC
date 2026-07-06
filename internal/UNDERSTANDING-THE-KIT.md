@@ -5,7 +5,7 @@
 > This is a teaching document. Use it to explain to colleagues *what* the kit is,
 > *how* its pieces work alone and together, *why* it is built this way, and *how* to
 > change its behavior — including how to steer the very first "Research" step toward
-> one technology choice over another (e.g. Microsoft Agent Framework vs LangChain).
+> one technology choice over another (e.g. Microsoft Agent Framework vs direct async .NET).
 >
 > Conceptual foundations are adapted from Microsoft HVE Core:
 > - [AI Artifacts Architecture](https://github.com/microsoft/hve-core/blob/main/docs/architecture/ai-artifacts.md)
@@ -48,22 +48,22 @@ question:
 
 ```markdown
 ---
-description: "Python backend coding standards for FastAPI financial services"
-applyTo: "**/*.py"
+description: "C# backend coding standards for ASP.NET Core financial services"
+applyTo: "**/*.cs"
 ---
-# Python Backend Standards
-- Use Pydantic v2 models for all request/response bodies
+# C# Backend Standards
+- Use record DTOs with validation attributes for all request/response bodies
 - All Azure SDK calls use async clients and DefaultAzureCredential
 - Never log full account numbers — mask as ****1234
 ```
 
-- **How it fires:** automatically. The moment you work on a `.py` file, this file's
+- **How it fires:** automatically. The moment you work on a `.cs` file, this file's
   rules are injected into Copilot's context *before you even type a message*.
 - **Composability:** multiple instruction files stack. A `.tsx` file can simultaneously
   pull in `react-frontend`, `azure-services`, and the catch-all `financial-domain`
   (which uses `applyTo: "**"`).
-- **Our kit has four:** `python-backend` (`**/*.py`), `react-frontend` (`**/*.tsx, **/*.ts`),
-  `azure-services` (`**/*.py, **/*.ts, **/*.tsx`), and `financial-domain` (`**`).
+- **Our kit has four:** `csharp-backend` (`**/*.cs`), `react-frontend` (`**/*.tsx, **/*.ts`),
+  `azure-services` (`**/*.cs, **/*.ts, **/*.tsx`), and `financial-domain` (`**`).
 - **Why it matters:** this is the *quality floor*. The model literally cannot "forget"
   to mask account numbers or to use async Cosmos clients, because the rule is present
   on every relevant turn.
@@ -167,7 +167,7 @@ flowchart TD
     P -->|routes intent| A[Agent: Fin Task Researcher]
     A -->|delegates tool work| S1[Researcher Subagent / Explore]
     A -->|loads on demand| K[Skill: azure-financial-services]
-    I[Instructions: python / react / azure / domain]:::inst -.always-on.-> A
+    I[Instructions: csharp / react / azure / domain]:::inst -.always-on.-> A
     A -->|handoff button| A2[Agent: Fin Task Planner]
     classDef inst fill:#1a1f2e,stroke:#6366f1,color:#fff;
 ```
@@ -312,7 +312,7 @@ code --install-extension fin-copilot-kit-X.Y.Z.vsix --force
 ## 6. Steering the Research step toward "A vs B" (the key technique)
 
 This is the question that prompted this guide: *how do I guide that initial Research
-prompt so it chooses, say, Microsoft Agent Framework over LangChain?*
+prompt so it chooses, say, Microsoft Agent Framework over hand-rolled async orchestration?*
 
 There are **three levels of control**, from lightest to heaviest. Use the lightest one
 that gets the job done.
@@ -325,26 +325,26 @@ instead of re-litigating the decision. The topic string is your steering wheel.
 
 ```
 /fin-task-research credit risk scoring pipeline for corporate loans —
-Microsoft Agent Framework orchestration (not LangChain) —
+Microsoft Agent Framework orchestration (not hand-rolled async) —
 Prompt Agents in Azure AI Foundry (not Hosted Agents) —
 CosmosDB container "assessments" partition /company_id —
 AI Search sanctions-pep index for KYC — loan officer HITL gate
 ```
 
-Naming the decision *and the rejected alternative* ("MAF, not LangChain") is the single
-most reliable lever. The Researcher then verifies `pip install agent-framework --pre`,
-the correct import paths, the checkpoint store, and the HITL pattern — rather than
+Naming the decision *and the rejected alternative* ("MAF, not hand-rolled async") is the single
+most reliable lever. The Researcher then verifies `dotnet add package Microsoft.Agents.AI`,
+the correct namespaces, the checkpoint store, and the HITL pattern — rather than
 spending effort comparing frameworks you've already chosen between.
 
 **The recurring financial decision points** worth naming explicitly:
 
 | Decision | Option A | Option B | Phrase to put in the prompt |
 |---|---|---|---|
-| Orchestration | Microsoft Agent Framework | LangChain / direct async | "Microsoft Agent Framework orchestration (not LangChain)" |
+| Orchestration | Microsoft Agent Framework | Direct async .NET | "Microsoft Agent Framework orchestration (not hand-rolled async)" |
 | Foundry agent type | Prompt Agent | Hosted Agent | "Prompt Agents (not Hosted Agents) — quota limits" |
 | Vector search | Azure AI Search | Cosmos DB vector | "AI Search vector index for sanctions screening" |
 | Grounding | Bing grounding | Private AI Search RAG | "Bing grounding for adverse media" |
-| Transport | WebSocket streaming | REST + polling | "real-time WebSocket streaming" |
+| Transport | SignalR streaming | REST + polling | "real-time SignalR streaming" |
 
 ### Level 2 — Ask for a comparison first (when you're undecided)
 
@@ -353,7 +353,7 @@ criteria, then commit it to the doc:
 
 ```
 /fin-task-research orchestration framework choice for a 3-agent loan pipeline —
-compare Microsoft Agent Framework vs LangChain for: Azure-native auth, built-in
+compare Microsoft Agent Framework vs direct async .NET for: Azure-native auth, built-in
 human-in-the-loop gates, CosmosDB checkpoint persistence, and team familiarity —
 recommend ONE and justify, then design the pipeline around the winner
 ```
@@ -371,10 +371,10 @@ per-project choice, encode it so nobody has to remember:
 - **In the `azure-services` instruction** (always-on, applies everywhere):
   ```markdown
   ## Orchestration
-  - Default to Microsoft Agent Framework (`agent-framework`) for multi-agent
+  - Default to Microsoft Agent Framework (`Microsoft.Agents.AI`) for multi-agent
     orchestration, HITL gates, and Foundry integration.
-  - Use LangChain only when a task explicitly requires its ecosystem; justify in the
-    research doc.
+  - Use hand-rolled async orchestration only for the simplest single/parallel-agent
+    cases; justify in the research doc.
   ```
 - **In the `azure-financial-services` skill** — add a "Framework selection" section with
   the decision matrix and verified import paths, so the deep guidance loads whenever an
@@ -435,7 +435,7 @@ WHERE:
 | Element | Example |
 |---|---|
 | Domain problem | "credit risk scoring for corporate loan applications" |
-| Key decision(s) to resolve | "AI Search vector vs CosmosDB vector, MAF vs LangChain" |
+| Key decision(s) to resolve | "AI Search vector vs CosmosDB vector, MAF vs direct async .NET" |
 | Agents needed | "CreditScoringAgent, KYCAgent with AI Search, NewsRiskAgent with Bing" |
 | Persistence | "CosmosDB assessments container, partition by company_id" |
 | Customer constraint | "must use Prompt Agents (not Hosted Agents) — Foundry quota limits" |
@@ -466,19 +466,18 @@ These are the recurring choice points in financial AI solutions. Encode the cust
 choice in the research prompt (§6) so the Researcher investigates the right path and the
 Planner generates the right implementation tasks.
 
-**Decision 1 — Orchestration: MAF vs LangChain vs direct async**
+**Decision 1 — Orchestration: MAF workflow vs direct async vs single agent**
 
-| | Microsoft Agent Framework (MAF) | LangChain | Direct async Python |
+| | Microsoft Agent Framework (MAF) | Direct async .NET | Single-agent call |
 |---|---|---|---|
-| **Use when** | Azure-native, multi-agent pipelines, HITL gates, Foundry integration | OSS ecosystem preference, complex LLM chaining, non-Azure tools | Simple single-agent call, prototype, no orchestration complexity |
-| **Azure fit** | Native: Foundry Agents, CosmosDB checkpoints, built-in HITL | Works but needs adapter code for Azure auth | Full control; best for lightweight scenarios |
-| **State persistence** | Built-in checkpoint store (CosmosDB) | Bring your own | Bring your own |
+| **Use when** | Multi-agent pipelines, HITL gates, Foundry integration, durable state | A few agents in parallel/sequence, no framework overhead | One agent, prototype, no orchestration complexity |
+| **Azure fit** | Native: Foundry Agents, CosmosDB checkpoints, built-in HITL | Full control; `DefaultAzureCredential` + `Task.WhenAll` | Full control; best for the simplest scenarios |
+| **State persistence** | Built-in checkpoint store (CosmosDB) | Bring your own | Not needed |
 | **HITL gates** | First-class concept | Manual implementation | Manual implementation |
-| **Prompt phrase** | "MAF orchestration" | "LangChain orchestration" | "direct async agent calls, no orchestration framework" |
+| **Prompt phrase** | "MAF orchestration" | "direct async .NET, Task.WhenAll, no orchestration framework" | "single Foundry agent call" |
 
-> Specify `pip install agent-framework --pre` for MAF or
-> `pip install langchain langchain-azure-openai` for LangChain so the Researcher verifies
-> the correct import paths.
+> Specify `dotnet add package Microsoft.Agents.AI` (plus `Microsoft.Agents.AI.AzureAI` for the
+> Foundry integration) so the Researcher verifies the correct namespaces and versions.
 
 **Decision 2 — Foundry agent type: Prompt Agent vs Hosted Agent**
 
@@ -487,7 +486,7 @@ Planner generates the right implementation tasks.
 | **Definition** | Agent defined by a system prompt string only; no persistent compute | Agent with compute, memory, optional code interpreter on Foundry |
 | **Use when** | Most financial use cases: reasoning over text/data, no per-agent state | Need persistent memory across calls, code execution, file I/O in the agent |
 | **Quota impact** | Low — shared compute pool | High — dedicated resources; often quota-limited |
-| **SDK pattern** | `client.agents.get_agent(name="MyAgent")` then Responses API | Same SDK; agent has hosted compute attached |
+| **SDK pattern** | `projectClient.GetAIAgentAsync("MyAgent")` then `RunAsync` | Same SDK; agent has hosted compute attached |
 | **Prompt phrase** | "Prompt Agents (not Hosted Agents)" | "Hosted Agents with persistent memory" |
 
 **Decision 3 — Vector search: Azure AI Search vs CosmosDB vector**
@@ -528,11 +527,11 @@ Researcher can validate it against expected query patterns — e.g. "CosmosDB co
 
 **Decision 6 — Real-time vs request/response**
 
-| | WebSocket (real-time) | REST (request/response) |
+| | WebSocket / SignalR (real-time) | REST (request/response) |
 |---|---|---|
 | **Use when** | Meeting transcription, live surveillance, streaming output | Loan assessment submit, portfolio run, batch report |
-| **FastAPI pattern** | `@router.websocket("/ws/{feature}/{session_id}")` | `@router.post("/endpoint")` |
-| **Prompt phrase** | "real-time WebSocket streaming for live progress" | "REST API, async processing, job ID + polling" |
+| **ASP.NET Core pattern** | SignalR hub `MapHub<TranscriptionHub>("/hubs/transcription")` | `[HttpPost("endpoint")]` controller action |
+| **Prompt phrase** | "real-time SignalR streaming for live progress" | "REST API, async processing, job ID + polling" |
 
 ### 7.4 Research document structure (what to verify)
 
@@ -559,7 +558,7 @@ After reviewing the research doc, run `/clear` then `/fin-task-plan`. A good pla
 these properties — send it back if any are missing:
 
 1. **Every task references a file path** — not "implement the service" but
-   "Create `backend/app/services/credit_risk_service.py`".
+   "Create `backend/FinancialServices.Api/Services/CreditRiskService.cs`".
 2. **Tasks in dependency order** — models before services, services before routers; types
    before components, components before pages.
 3. **One action per task** — not "build the credit agent and add its route".
@@ -574,15 +573,15 @@ these properties — send it back if any are missing:
 Before handing to the Reviewer, verify these yourself:
 
 ```
-□ Backend runs: uvicorn starts without error
+□ Backend runs: dotnet run starts the API without error
 □ Real Azure calls: all agents, Cosmos, AI Search calls go to live Azure (no mocks)
 □ .env populated: every env var the feature uses has a real value
 □ Endpoints respond: curl/Postman confirms API returns real Azure data
 □ UI renders themed: dark background, Inter font, left sidebar visible
 □ Workflow page updated: new nodes appear, clicking opens detail panel
-□ Audit log: new financial operations appear in Cosmos audit_log container
+□ Audit log: new financial operations appear in Cosmos auditLog container
 □ HITL gates: if required, approval gates pause the workflow correctly
-□ run-backend.bat and run-frontend.bat start cleanly
+□ run-backend.bat, run-copilot-runtime.bat and run-frontend.bat start cleanly
 ```
 
 ### 7.7 Full end-to-end example sequence
@@ -598,7 +597,7 @@ Cosmos DB for persistence, MAF orchestration, Prompt Agents.
    with Bing grounding) — Microsoft Agent Framework orchestration — Prompt Agents in
    Azure AI Foundry (not Hosted Agents) — CosmosDB container "assessments" partition
    /company_id — loan officer HITL gate before final decision — AML compliance required
-   — FastAPI backend, React dark-theme frontend — .env must be populated for live testing
+   — C# ASP.NET Core backend, React (shadcn) dark-theme frontend — .env must be populated for live testing
    ```
 2. **Review the research doc** — confirm SDK packages/versions verified, AI Search index
    schema defined, Cosmos partition key validated, HITL gate placement confirmed, workflow
@@ -624,9 +623,9 @@ Cosmos DB for persistence, MAF orchestration, Prompt Agents.
 │   └── fin-task-reviewer.agent.md
 ├── instructions/
 │   ├── coding-standards/
-│   │   ├── python-backend.instructions.md   # applyTo: **/*.py
+│   │   ├── csharp-backend.instructions.md    # applyTo: **/*.cs
 │   │   ├── react-frontend.instructions.md   # applyTo: **/*.tsx, **/*.ts
-│   │   └── azure-services.instructions.md   # applyTo: **/*.py, **/*.ts, **/*.tsx
+│   │   └── azure-services.instructions.md   # applyTo: **/*.cs, **/*.ts, **/*.tsx
 │   └── financial-domain/
 │       └── financial-domain.instructions.md # applyTo: **
 ├── prompts/
@@ -666,7 +665,7 @@ code --install-extension fin-copilot-kit-X.Y.Z.vsix --force
 ### Architecture decision cheat sheet
 
 ```
-Orchestration:    MAF (Azure-native HITL) | LangChain (OSS) | direct async (simple)
+Orchestration:    MAF (Azure-native HITL) | direct async .NET (Task.WhenAll) | single agent (simplest)
 Agent type:       Prompt Agent (most cases) | Hosted Agent (persistent memory/code exec)
 Vector search:    AI Search (large corpus, hybrid) | Cosmos vector (small, same store)
 Grounding:        Bing (news/markets) | AI Search RAG (private docs) | none (provided data)
@@ -737,7 +736,7 @@ universally understood.
 | 1 | `/fin-task-research a credit risk scoring service combining financial data, KYC, and news sentiment` | "First we *research* — the AI investigates Azure options and domain constraints before writing a line of code. Senior-engineer discipline, automated." |
 | 2 | Show the research doc in `.copilot-tracking/research/` | "It picked Azure AI Foundry for the agents, Cosmos for persistence, and flagged the regulations that apply." |
 | 3 | `/clear` then `/fin-task-plan` | "Now it turns research into a precise, file-level plan — including a mandatory workflow-visualization step." |
-| 4 | `/clear` then `/fin-task-implement` | "Now it builds: a FastAPI backend, three Azure agents, a React gauge UI — all to your coding standards." |
+| 4 | `/clear` then `/fin-task-implement` | "Now it builds: a C# ASP.NET Core backend, three Azure agents, a React gauge UI — all to your coding standards." |
 | 5 | Open the running app: **risk gauge** + **Workflow tab** | "Here's the working MVP. And here's the live data-flow diagram — click any node to see the code behind it." |
 | 6 | `/clear` then `/fin-task-review` | "Finally it reviews its own work — flagging Critical, Major, or Minor issues, including compliance gaps." |
 

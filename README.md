@@ -15,10 +15,10 @@ development **repeatable**, **standards-aligned**, and **scalable**:
 | Component | What It Does |
 |---|---|
 | **Instructions** | Apply coding standards automatically to every file you edit |
-| **Agents** | Specialized AI agents for Research, Planning, Implementation, and Review |
+| **Agents** | Specialized AI agents for Research, Planning, Implementation, and Review, plus an adversarial architecture red-team |
 | **Prompts** | Repeatable workflow entry points (one command per phase) |
 | **Skills** | Reusable domain knowledge for Azure services and workflow visualization |
-| **Templates** | Ready-to-use React components for the Workflow visualization page |
+| **Templates** | Ready-to-use shadcn/ui frontend design system, workflow visualization, and a C# API starter |
 
 ---
 
@@ -45,9 +45,9 @@ Start here to understand and grow the kit:
 │   └── fin-task-reviewer.agent.md             # Review phase agent
 ├── instructions/
 │   ├── coding-standards/
-│   │   ├── python-backend.instructions.md     # FastAPI + Azure Python standards
-│   │   ├── react-frontend.instructions.md     # React + TypeScript + Tailwind standards
-│   │   └── azure-services.instructions.md     # Azure SDK integration patterns
+│   │   ├── csharp-backend.instructions.md      # ASP.NET Core + Azure C# standards
+│   │   ├── react-frontend.instructions.md      # React 18 + shadcn + TanStack + CopilotKit standards
+│   │   └── azure-services.instructions.md      # Azure .NET SDK integration patterns
 │   └── financial-domain/
 │       └── financial-domain.instructions.md   # Capital Markets, Banking, Insurance knowledge
 ├── prompts/
@@ -61,13 +61,15 @@ Start here to understand and grow the kit:
     └── workflow-visualization/SKILL.md        # Workflow page implementation guide
 
 templates/
-└── workflow-visualization/
-    ├── workflowTypes.ts                       # TypeScript type definitions
-    ├── workflowData.ts                        # Sample workflow data (Meeting Intelligence)
-    ├── WorkflowNode.tsx                       # Node component
-    ├── WorkflowDetailPanel.tsx                # Right-side detail popup
-    ├── WorkflowDiagram.tsx                    # Main graph renderer
-    └── WorkflowPage.tsx                       # Full page component
+├── frontend-design-system/                    # shadcn/ui dark theme + providers (React 18)
+├── workflow-visualization/
+│   ├── workflowTypes.ts                       # TypeScript type definitions
+│   ├── workflowData.ts                        # Sample workflow data (Meeting Intelligence)
+│   ├── WorkflowNode.tsx                       # Node component
+│   ├── WorkflowDetailPanel.tsx                # Right-side detail popup
+│   ├── WorkflowDiagram.tsx                    # Main graph renderer
+│   └── WorkflowPage.tsx                       # Full page component
+└── csharp-api/                                # ASP.NET Core (.NET 9) API + CopilotKit Node sidecar
 ```
 
 ---
@@ -175,10 +177,11 @@ Every application follows this stack:
 
 | Layer | Technology | Port |
 |---|---|---|
-| Frontend | React 18 + TypeScript + Vite + Tailwind CSS | 5173 |
-| Backend | Python 3.11 + FastAPI + Uvicorn | 8000 |
-| Agents | Azure AI Foundry (Responses API v2, MAF) | — |
-| Database | Azure Cosmos DB (async SDK) | — |
+| Frontend | React 18 + Vite + shadcn/ui + TanStack Query/Table + CopilotKit + Tailwind CSS | 5173 |
+| Copilot runtime | CopilotKit Node sidecar (Azure OpenAI adapter) | 4000 |
+| Backend | C# / ASP.NET Core Web API (.NET 9) | 8000 |
+| Agents | Microsoft Agent Framework (.NET) over Azure AI Foundry | — |
+| Database | Azure Cosmos DB (.NET SDK) | — |
 | Search | Azure AI Search (hybrid vector+keyword) | — |
 | Speech | Azure Speech Services | — |
 | Identity | Azure Identity (DefaultAzureCredential) | — |
@@ -201,16 +204,16 @@ Navigation
 
 ## Azure Services Reference
 
-| Use Case | Azure Service | SDK |
+| Use Case | Azure Service | SDK (NuGet) |
 |---|---|---|
-| AI Agents / LLM | Azure AI Foundry | `azure-ai-projects` |
-| Vector + Keyword Search | Azure AI Search | `azure-search-documents` |
-| NoSQL Database | Azure Cosmos DB | `azure-cosmos` |
-| Real-time Speech | Azure Speech Services | `azure-cognitiveservices-speech` |
-| Document Processing | Azure Document Intelligence | `azure-ai-documentintelligence` |
-| Content Moderation | Azure AI Content Safety | `azure-ai-contentsafety` |
-| Observability | Azure Monitor + OpenTelemetry | `azure-monitor-opentelemetry` |
-| Authentication | Azure Identity | `azure-identity` |
+| AI Agents / LLM | Azure AI Foundry via Microsoft Agent Framework | `Microsoft.Agents.AI`, `Azure.AI.Projects` |
+| Vector + Keyword Search | Azure AI Search | `Azure.Search.Documents` |
+| NoSQL Database | Azure Cosmos DB | `Microsoft.Azure.Cosmos` |
+| Real-time Speech | Azure Speech Services | `Microsoft.CognitiveServices.Speech` |
+| Document Processing | Azure Document Intelligence | `Azure.AI.DocumentIntelligence` |
+| Content Moderation | Azure AI Content Safety | `Azure.AI.ContentSafety` |
+| Observability | Azure Monitor + OpenTelemetry | `Azure.Monitor.OpenTelemetry.AspNetCore` |
+| Authentication | Azure Identity | `Azure.Identity` |
 
 ---
 

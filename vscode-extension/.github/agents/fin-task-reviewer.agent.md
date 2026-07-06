@@ -24,7 +24,7 @@ standards. Produces a review report with severity-graded findings.
 Ensure every implementation:
 - Correctly integrates Azure services per the research document
 - Satisfies financial domain compliance requirements
-- Follows Python/FastAPI and React/TypeScript coding standards
+- Follows C#/ASP.NET Core and React 18 (shadcn/TanStack/CopilotKit) coding standards
 - Has complete Workflow visualization with accurate data
 - Is secure (OWASP Top 10 compliant for financial data)
 - Has adequate test coverage
@@ -58,7 +58,9 @@ Write findings to `.copilot-tracking/reviews/{{YYYY-MM-DD}}/{topic}-review.md`.
 - [ ] No hardcoded credentials, API keys, or connection strings
 - [ ] No secrets in `.env` files committed to git (`.gitignore` covers `.env`)
 - [ ] No raw PII in log statements (names, account numbers, SSN, DOB)
-- [ ] Input validation on all new API endpoints (Pydantic models, not manual checks)
+- [ ] Input validation on all new API endpoints (model binding + validation attributes, not manual checks)
+- [ ] Endpoints require authentication (Entra JWT) with deny-by-default authorization — financial endpoints are never anonymous
+- [ ] Object-level authorization enforced server-side (reads/mutations scoped to the caller's advisorId/clientId; ids from routes/bodies/LLM tool calls are re-authorized, not trusted)
 - [ ] CORS not set to `allow_origins=["*"]` in production paths
 - [ ] Content Safety checks on all new user text inputs that go to agents
 - [ ] No SQL/NoSQL injection vectors (parameterized queries, no string concatenation)
@@ -76,9 +78,10 @@ Write findings to `.copilot-tracking/reviews/{{YYYY-MM-DD}}/{topic}-review.md`.
 - [ ] Agents, Cosmos, AI Search, Content Safety, Speech, and grounding calls target real Azure resources
 
 **UI / Design System — Must Render Styled**
-- [ ] Tailwind is wired up: `tailwind.config.js`, `postcss.config.js`, `@tailwind` directives in `index.css`, and `import './index.css'` in `main.tsx`
-- [ ] App renders the dark theme (`#0f1117` background, Inter font, left sidebar, rounded cards) — NOT unstyled white/serif HTML
-- [ ] Design-system tokens/classes used (`.card`, `.btn-primary`, `.input`, `bg-surface-*`, `text-accent`) — no inline hex, no raw `slate-*`
+- [ ] Tailwind + shadcn/ui are wired up: `tailwind.config.js`, `postcss.config.js`, `components.json`, `@tailwind` directives + shadcn CSS variables in `index.css`, and `import './index.css'` in `main.tsx`
+- [ ] App renders the dark theme (Inter font, left sidebar, rounded shadcn cards) — NOT unstyled white/serif HTML
+- [ ] shadcn tokens used (`bg-background`, `bg-card`, `border-border`, `text-foreground`, `text-muted-foreground`, `bg-primary`) — no inline hex, no raw `slate-*`
+- [ ] UI primitives come from shadcn/ui (`components/ui/*`) — buttons/dialogs/tables not hand-rolled
 - [ ] Required sidebar groups present: feature group + Architecture (Workflow, Architecture) + Settings
 
 **Correctness**
@@ -88,22 +91,26 @@ Write findings to `.copilot-tracking/reviews/{{YYYY-MM-DD}}/{topic}-review.md`.
 
 ### 🟡 Major — Should Fix Before Merge
 
-**Code Quality — Python**
-- [ ] All I/O operations are `async`/`await`
-- [ ] Pydantic v2 models used for all request/response bodies
-- [ ] `pydantic-settings` used for all configuration
-- [ ] `lru_cache` on singleton factory functions (`get_settings`, `get_cosmos_client`)
-- [ ] OpenTelemetry spans on agent calls and external service calls
-- [ ] Error responses use structured format: `{"error": {"code": "...", "message": "..."}}`
-- [ ] No broad `except Exception` without logging
+**Code Quality — C#**
+- [ ] All I/O operations are `async`/`await` with a `CancellationToken` plumbed through
+- [ ] DTOs are records with validation attributes for all request/response bodies
+- [ ] Configuration bound via `IOptions<T>` — no raw env/`IConfiguration` reads in business logic
+- [ ] Azure SDK clients registered as singletons (Cosmos, Search, project client factories)
+- [ ] Nullable reference types respected; builds clean with warnings-as-errors
+- [ ] OpenTelemetry activities/spans on agent calls and external service calls
+- [ ] Error responses use `ProblemDetails`: `{"error": {"code": "...", "message": "..."}}`
+- [ ] No empty `catch { }` blocks; unexpected exceptions logged with `LogError`
 
 **Code Quality — TypeScript/React**
 - [ ] No `any` types in TypeScript
-- [ ] Dark theme color tokens used consistently (`bg-slate-900`, `bg-slate-800`, etc.)
+- [ ] Server state via TanStack Query hooks — no `useEffect` fetching
+- [ ] Tabular data rendered with TanStack Table inside shadcn `Table`
+- [ ] shadcn CSS-variable tokens used consistently (`bg-background`, `bg-card`, `text-muted-foreground`)
 - [ ] `lucide-react` icons used — not emoji or inline SVG
 - [ ] Financial data formatted with `formatCurrency`, `formatPercent`, `formatCompactNumber`
-- [ ] Loading and error states handled in all data-fetching components
-- [ ] Positive/negative returns colored correctly (green-400 / red-400)
+- [ ] `isPending` and `isError` states handled in all data-fetching components
+- [ ] Positive/negative returns colored correctly (`text-success` / `text-danger`)
+- [ ] CopilotKit actions/readables expose backend capabilities correctly (no direct Azure OpenAI calls from the browser)
 
 **Workflow Visualization**
 - [ ] All new agents, services, and data stores added as nodes
@@ -118,7 +125,7 @@ Write findings to `.copilot-tracking/reviews/{{YYYY-MM-DD}}/{topic}-review.md`.
 
 ### 🔵 Minor — Nice to Fix
 
-- [ ] Python docstrings on new agent functions
+- [ ] XML doc comments on new public agent/service APIs
 - [ ] TypeScript JSDoc on complex utility functions
 - [ ] Console.log statements removed from production frontend code
 - [ ] Tests cover edge cases (empty portfolios, failed agent calls, network errors)

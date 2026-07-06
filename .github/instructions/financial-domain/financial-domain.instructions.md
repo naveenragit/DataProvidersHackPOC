@@ -143,18 +143,17 @@ Never store or log:
 ### Audit Trail Requirements
 
 Every financial data mutation must log:
-```python
-{
-    "event_type": "portfolio_rebalance",
-    "timestamp": "2024-01-15T10:30:00Z",
-    "advisor_id": "adv_12345",
-    "client_id": "cli_67890",
-    "session_id": "sess_abc",
-    "action": "rebalance_submitted",
-    "metadata": {"portfolio_id": "pf_xyz", "trade_count": 5},
-    "ip_address": "10.x.x.x",   # Internal IP only
-    "user_agent": "...",
-}
+```csharp
+public sealed record AuditEvent(
+    string EventType,        // "portfolio_rebalance"
+    DateTimeOffset Timestamp,
+    string AdvisorId,        // "adv_12345"
+    string ClientId,         // "cli_67890"
+    string SessionId,        // "sess_abc"
+    string Action,           // "rebalance_submitted"
+    IReadOnlyDictionary<string, object> Metadata, // { ["portfolioId"] = "pf_xyz", ["tradeCount"] = 5 }
+    string IpAddress,        // Internal IP only
+    string UserAgent);
 ```
 
 ### Human-in-the-Loop Gates

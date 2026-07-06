@@ -1,6 +1,6 @@
 <!-- Copy to frontend/index.html
-     The `class="dark"`, the Google Fonts links, and the body classes are what give
-     the app its dark base + Inter/JetBrains fonts before React even mounts. -->
+     `class="dark"` makes the professional dark theme the default before React mounts.
+     The Google Fonts links load Inter (UI) + JetBrains Mono (numbers/code). -->
 <!doctype html>
 <html lang="en" class="dark">
   <head>
@@ -15,7 +15,7 @@
       rel="stylesheet"
     />
   </head>
-  <body class="bg-surface text-gray-100 antialiased">
+  <body class="bg-background text-foreground antialiased">
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>

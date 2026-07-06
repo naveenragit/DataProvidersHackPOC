@@ -20,17 +20,18 @@ Before planning, verify:
 The plan **must** include the following sections:
 
 ### 1. Backend Tasks
-- FastAPI routes to add or modify (with exact file paths)
-- Pydantic models to create
+- ASP.NET Core controllers to add or modify (with exact file paths)
+- DTO / domain model records to create (`Models/`)
 - Azure SDK integrations (with exact SDK calls)
 - Cosmos DB container changes
-- Agent definitions in Azure AI Foundry
+- Microsoft Agent Framework agent definitions (`Agents/`)
 
 ### 2. Frontend Tasks
-- React components to create or modify
+- React components to create or modify (from shadcn/ui primitives)
 - New pages required
 - TypeScript types to define
-- API client functions needed
+- TanStack Query hooks and API client functions needed
+- CopilotKit actions/readables to expose
 
 ### 3. Workflow Visualization Update (REQUIRED)
 Every plan must include a task for updating `src/pages/WorkflowPage.tsx`:

@@ -4,6 +4,33 @@ This repository builds AI-powered solutions for **Capital Markets, Banking, and 
 **Microsoft Azure Data and AI Services**. All code, architecture, and design decisions are
 Azure-first and financially regulated-industry aware.
 
+**Stack at a glance:** a **C# / ASP.NET Core (.NET 9)** Web API service layer, AI agents built on the
+**Microsoft Agent Framework (.NET)** over **Azure AI Foundry**, and a **React 18 + Vite** frontend using
+**shadcn/ui**, **TanStack Query + Table**, **CopilotKit** (via a Node runtime sidecar), and **Tailwind CSS**.
+
+---
+
+## ⭐ Project Architecture — READ BEFORE WRITING CODE
+
+The active project in this repository is **Prism — Corporate Bond Credit-Rating Divergence Explainer**.
+Before generating or editing any code, **every agent and contributor must read and follow** the
+project's architecture governance:
+
+- **`architecturalPlan/`** — authoritative Prism architecture & standards. Start with
+  [`architecturalPlan/00-core-principles.md`](../architecturalPlan/00-core-principles.md) (non-negotiables),
+  then the file relevant to your change (naming `01`, folders `02`, errors `03`, agents `04`,
+  config `05`, security `06`, observability `07`, data `08`, API `09`, frontend `10`, testing `11`).
+  See [`architecturalPlan/README.md`](../architecturalPlan/README.md) for the index and precedence rules.
+- **`implementationPlan/`** — *what* to build, in sequence (work packages 00–12).
+- **`architecturalPlan/TASKS.md`** — progress tracker; update it as you complete work.
+- **`PRISM-BUILD-PLAN.md`** — concept, agents, demo script.
+
+**Never violate a core principle**, especially: (P2) the **deterministic core** — notch math and
+red-flag triggers live in `Analysis/` as plain C#; the LLM only narrates and cites — and (P4) **never
+say buy / sell / hold / recommend / allocate / trade / alpha / signal**. Prism reconciles data; it is
+**not** a trading agent. These project rules specialize (and, for Prism-specific decisions, take
+precedence over) the org standards below.
+
 ---
 
 ## Core Principle: Real Azure Services Only
@@ -14,7 +41,7 @@ The value of every solution is in **real, plugged-in Azure services** — not si
   Content Safety, Speech, and grounding/Bing calls must run against **real Azure resources**.
 - **No silent fallbacks.** Do not degrade to canned/sample responses when a service is
   unconfigured or unreachable — fail loudly with a clear, actionable error instead.
-- **Mocks/fakes are allowed only inside automated test code** (`pytest`, `vitest`) — never in
+- **Mocks/fakes are allowed only inside automated test code** (`xUnit`, `vitest`) — never in
   runtime paths shipped to users.
 - Configuration comes from a populated `.env`. If required Azure settings are missing, surface
   an explicit error telling the developer which variables to set — never substitute fake values.
@@ -39,28 +66,29 @@ When naming components, routes, agents, models, or data fields, prefer financial
 
 Every solution follows a two-tier full-stack pattern:
 
-### Backend — Python + FastAPI
+### Backend — C# + ASP.NET Core Web API (.NET 9)
 ```
 backend/
-├── app/
-│   ├── main.py                   # FastAPI app, middleware, startup events
-│   ├── agents/                   # Azure AI Foundry MAF agents
-│   ├── models/                   # Pydantic v2 request/response models
-│   ├── routers/                  # FastAPI route handlers (one file per domain)
-│   ├── services/                 # Business logic, orchestration
-│   ├── orchestration/            # Multi-agent workflow orchestration
-│   ├── infra/                    # settings.py (pydantic-settings), cosmos.py, search.py
-│   └── helpers/                  # Shared utilities
-├── requirements.txt
-├── .env.example
-└── start.ps1
+├── FinancialServices.Api/          # ASP.NET Core Web API (controllers)
+│   ├── Program.cs                  # Host builder, DI, middleware, CORS, OpenAPI
+│   ├── Controllers/                # API controllers (one file per domain)
+│   ├── Agents/                     # Microsoft Agent Framework agents over Azure AI Foundry
+│   ├── Models/                     # Request/response DTOs + domain records
+│   ├── Services/                   # Business logic, orchestration
+│   ├── Orchestration/              # Multi-agent workflow orchestration
+│   ├── Infrastructure/             # Options, CosmosClientFactory, SearchClientFactory, Telemetry
+│   ├── Helpers/                    # Shared utilities
+│   └── appsettings.json            # Non-secret config (secrets via env vars / Key Vault)
+├── FinancialServices.Tests/        # xUnit test project
+└── FinancialServices.sln
 ```
 
-### Frontend — React + TypeScript + Vite + Tailwind CSS
+### Frontend — React 18 + Vite + shadcn/ui + TanStack + CopilotKit + Tailwind CSS
 ```
 frontend/
 ├── src/
-│   ├── components/               # Reusable UI components
+│   ├── components/
+│   │   ├── ui/                   # shadcn/ui primitives (button, card, table, dialog, ...)
 │   │   ├── layout/               # Sidebar, Header, AppLayout
 │   │   ├── workflow/             # WorkflowDiagram, WorkflowNode, WorkflowDetailPanel
 │   │   └── [feature]/            # Feature-specific components
@@ -68,19 +96,33 @@ frontend/
 │   │   ├── WorkflowPage.tsx      # System workflow visualization (always present)
 │   │   ├── ArchitecturePage.tsx  # Architecture diagram and ADRs
 │   │   └── SettingsPage.tsx      # App configuration
-│   ├── utils/                    # API clients, helpers
+│   ├── hooks/                    # TanStack Query hooks (useQuery/useMutation per domain)
+│   ├── lib/                      # apiClient, queryClient, utils (cn), formatters
 │   ├── types/                    # TypeScript type definitions
-│   ├── App.tsx                   # Root app with sidebar navigation
+│   ├── App.tsx                   # CopilotKit provider + QueryClientProvider + router
 │   └── main.tsx
+├── components.json               # shadcn/ui config
 ├── package.json
+├── tailwind.config.js
 └── vite.config.ts
 ```
 
+### CopilotKit Runtime (Node sidecar)
+```
+copilot-runtime/
+├── server.ts                     # CopilotRuntime + OpenAIAdapter (Azure OpenAI); proxies to the C# API
+├── package.json
+└── .env.example
+```
+The frontend talks to CopilotKit through this Node sidecar (CopilotKit's runtime is Node-based).
+The sidecar forwards tool/action calls to the C# `/api/v1/` endpoints and streams completions from Azure OpenAI.
+
 ### Root Run Scripts
 
-The repository root **must** include two batch files so the app can be started by executing them:
+The repository root **must** include batch files so the app can be started by executing them:
 
-- `run-backend.bat` — creates/activates `backend/.venv`, installs `requirements.txt`, runs Uvicorn on port 8000
+- `run-backend.bat` — runs `dotnet restore` then `dotnet run` for the ASP.NET Core API on port 8000
+- `run-copilot-runtime.bat` — runs `npm install` (if needed) and starts the CopilotKit Node runtime sidecar on port 4000
 - `run-frontend.bat` — runs `npm install` (if needed) and `npm run dev` in `frontend/` on port 5173
 
 ---
@@ -107,18 +149,18 @@ The sidebar uses a collapsible group structure with icons from `lucide-react`.
 
 All cloud services must be from **Microsoft Azure**. Preferred services by category:
 
-| Category | Service | SDK / Package |
+| Category | Service | SDK / Package (NuGet) |
 |---|---|---|
-| AI Agents / LLM | Azure AI Foundry (Responses API v2) | `azure-ai-projects` |
-| Vector Search | Azure AI Search | `azure-search-documents` |
-| NoSQL Database | Azure Cosmos DB | `azure-cosmos` (async) |
-| Speech | Azure Speech Services | `azure-cognitiveservices-speech` |
-| Document Intelligence | Azure Document Intelligence | `azure-ai-documentintelligence` |
-| Content Safety | Azure AI Content Safety | `azure-ai-contentsafety` |
-| Identity | Azure Identity | `azure-identity` |
-| Monitoring | Azure Monitor + OpenTelemetry | `azure-monitor-opentelemetry` |
-| Storage | Azure Blob Storage | `azure-storage-blob` |
-| Key Vault | Azure Key Vault | `azure-keyvault-secrets` |
+| AI Agents / LLM | Azure AI Foundry via Microsoft Agent Framework | `Microsoft.Agents.AI`, `Azure.AI.Agents.Persistent`, `Azure.AI.Projects` |
+| Vector Search | Azure AI Search | `Azure.Search.Documents` |
+| NoSQL Database | Azure Cosmos DB | `Microsoft.Azure.Cosmos` |
+| Speech | Azure Speech Services | `Microsoft.CognitiveServices.Speech` |
+| Document Intelligence | Azure Document Intelligence | `Azure.AI.DocumentIntelligence` |
+| Content Safety | Azure AI Content Safety | `Azure.AI.ContentSafety` |
+| Identity | Azure Identity | `Azure.Identity` |
+| Monitoring | Azure Monitor + OpenTelemetry | `Azure.Monitor.OpenTelemetry.AspNetCore` |
+| Storage | Azure Blob Storage | `Azure.Storage.Blobs` |
+| Key Vault | Azure Key Vault | `Azure.Security.KeyVault.Secrets` |
 
 Always use `DefaultAzureCredential` for managed identity in production.
 Use `ClientSecretCredential` only when managed identity is unavailable.
@@ -127,30 +169,32 @@ Use `ClientSecretCredential` only when managed identity is unavailable.
 
 ## Code Standards
 
-### Python
-- Python 3.11+, fully typed with `mypy`-compatible annotations
-- `async`/`await` everywhere that I/O is involved
-- Pydantic v2 for all data models (`model_validator`, `field_validator`)
-- `pydantic-settings` for configuration (never `os.getenv` directly in business logic)
-- OpenTelemetry spans on all agent calls and external service calls
-- Structured JSON logging via `structlog` or `logging` with JSON formatter
+### C# (.NET 9)
+- Nullable reference types enabled; treat warnings as errors
+- `async`/`await` end-to-end with a `CancellationToken` plumbed through all I/O
+- Records + `System.Text.Json` for DTOs; DataAnnotations or FluentValidation for validation
+- `IOptions<T>` / options pattern for configuration (never read env vars directly in business logic)
+- OpenTelemetry activities/spans on all agent calls and external service calls
+- Structured logging via `ILogger<T>` with logging scopes — no string concatenation
 - Never log PII, credentials, or raw financial data
 
 ### TypeScript / React
 - Strict TypeScript (`"strict": true` in tsconfig)
-- Functional components with hooks only — no class components
+- React 18 functional components with hooks only — no class components
+- **shadcn/ui** (Radix + Tailwind) for all UI primitives — do not hand-roll buttons, dialogs, tables
+- **TanStack Query** for all server state (no ad-hoc `useEffect` fetching); **TanStack Table** for all data grids
+- **CopilotKit** (`@copilotkit/react-core`, `@copilotkit/react-ui`) for the AI copilot surface, wired to the Node runtime sidecar
 - Tailwind CSS for all styling — no inline styles, no CSS modules (unless the project already uses them)
 - `lucide-react` for all icons
-- Dark theme by default: `bg-slate-900` body, `bg-slate-800` surfaces, `border-slate-700` borders
-- `text-white` or `text-slate-100` for primary text, `text-slate-400` for secondary
-- Accent color: `indigo-500` / `purple-500` for primary CTAs and highlights
+- Dark theme by default using shadcn CSS variables: `bg-background`, `bg-card`, `border-border`, `text-foreground`, `text-muted-foreground`
+- Accent via the shadcn `primary` token (indigo / violet)
 
 ### API Design
 - All routes prefixed with `/api/v1/`
 - RESTful conventions: `GET /api/v1/portfolios`, `POST /api/v1/portfolios/{id}/rebalance`
-- WebSocket routes for real-time features: `/ws/{feature}/{session_id}`
+- Real-time features use SignalR hubs (`/hubs/{feature}`) or WebSockets (`/ws/{feature}/{session_id}`)
 - Health check: `GET /api/health`
-- OpenAPI docs at `/docs` (Swagger) and `/redoc`
+- OpenAPI document via built-in `AddOpenApi()` / `MapOpenApi()` at `/openapi/v1.json` (add Swashbuckle if you want a Swagger UI at `/swagger`)
 - Consistent error response shape: `{"error": {"code": "...", "message": "...", "details": {...}}}`
 
 ---
@@ -170,8 +214,8 @@ Use `ClientSecretCredential` only when managed identity is unavailable.
 
 ## Testing
 
-- Unit tests: `pytest` with `pytest-asyncio` for async code
-- Integration tests: `httpx` + `pytest` for API endpoints
+- Unit tests: `xUnit` + `FluentAssertions`; mock with `NSubstitute` or `Moq`
+- Integration tests: `WebApplicationFactory<Program>` (`Microsoft.AspNetCore.Mvc.Testing`)
 - Frontend tests: `vitest` + `@testing-library/react`
 - Minimum 80% coverage on business logic and agents
 

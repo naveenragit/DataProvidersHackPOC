@@ -82,7 +82,7 @@ export interface WorkflowTab {
 
 | `NodeType` | Background | Border | Label Color | Use For |
 |---|---|---|---|---|
-| `service` | `bg-blue-900/50` | `border-blue-600` | `text-blue-200` | FastAPI services, orchestration layers |
+| `service` | `bg-blue-900/50` | `border-blue-600` | `text-blue-200` | ASP.NET Core controllers/services, orchestration layers |
 | `agent` | `bg-purple-900/50` | `border-purple-600` | `text-purple-200` | Azure AI Foundry agents |
 | `gate` | `bg-amber-900/50` | `border-amber-600` | `text-amber-200` | Human-in-the-loop approval checkpoints |
 | `datastore` | `bg-teal-900/50` | `border-teal-600` | `text-teal-200` | Cosmos DB, Azure AI Search |
@@ -440,10 +440,10 @@ export const workflowTabs: WorkflowTab[] = [
           title: 'Start Workflow',
           subtitle: 'meeting · session trigger',
           description: 'Entry point triggered when an advisor initiates a new client meeting session via the frontend.',
-          sourceFiles: ['backend/app/routers/meetings.py'],
+          sourceFiles: ['backend/FinancialServices.Api/Controllers/MeetingsController.cs'],
           responsibilities: ['Accept session start request', 'Generate session ID', 'Initialize Cosmos DB session record'],
           dataFlow: ['1. POST /api/v1/meetings/start', '2. Session created in Cosmos DB', '3. Triggers Pre-Meeting Prep pipeline'],
-          technologies: ['FastAPI', 'Azure Cosmos DB'],
+          technologies: ['ASP.NET Core', 'Azure Cosmos DB'],
         },
       },
       // Add more nodes following this pattern...

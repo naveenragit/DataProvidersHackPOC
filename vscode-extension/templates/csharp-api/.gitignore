@@ -1,0 +1,20 @@
+# Build output
+bin/
+obj/
+*.user
+
+# Environment & secrets — never commit
+.env
+.env.*
+!.env.example
+appsettings.*.local.json
+
+# Node (copilot-runtime sidecar)
+node_modules/
+
+# Editor / OS
+.vs/
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

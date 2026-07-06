@@ -12,8 +12,8 @@ tested across the choices a real customer engagement would face.
 | # | Domain | Feature | Orchestration | Foundry agent type | Knowledge / grounding | What it stress-tests |
 |---|---|---|---|---|---|---|
 | 1 | **Capital Markets** | Portfolio Risk & Rebalancing Advisor | **Microsoft Agent Framework (MAF)** | Prompt Agents (Responses API v2) | Bing grounding + AI Search | Azure-native multi-agent orchestration with built-in HITL checkpoints |
-| 2 | **Banking** | Loan Credit Risk Scoring | Direct async (`asyncio.gather`) | Prompt Agents (Responses API v2) | **Foundry IQ knowledge base** | Foundry IQ agentic retrieval as the grounding layer |
-| 3 | **Insurance** | Claims Triage & Reserve Estimate | **LangChain / LangGraph** | **Hosted Agents deployed in Azure** (Responses API v2) | AI Search + Document Intelligence | Non-Azure orchestrator over Azure-hosted agents |
+| 2 | **Banking** | Loan Credit Risk Scoring | Direct async (`Task.WhenAll`) | Prompt Agents (Responses API v2) | **Foundry IQ knowledge base** | Foundry IQ agentic retrieval as the grounding layer |
+| 3 | **Insurance** | Claims Triage & Reserve Estimate | **Microsoft Agent Framework (MAF) workflow** | **Hosted Agents deployed in Azure** (Responses API v2) | AI Search + Document Intelligence | MAF orchestration over Azure-hosted (persistent-compute) agents with a code interpreter |
 
 > **Pick the variation deliberately.** The orchestration framework, the Foundry agent
 > type, and the knowledge layer are named *in each research prompt* so the Researcher
@@ -28,20 +28,20 @@ These are constant across every scenario. They are stated here once; each resear
 references them so you don't have to repeat them.
 
 - **Responses API v2, not v1 Assistants.** All Foundry agents use the **Azure AI Foundry
-  Responses API (v2)** via `azure-ai-projects` — create/reference agents and call
-  `responses.create`. Do **not** use the deprecated v1 Assistants API
+  Responses API (v2)** via `Azure.AI.Projects` + `Microsoft.Agents.AI` — create/reference agents
+  and run them through the Agent Framework. Do **not** use the deprecated v1 Assistants API
   (`assistants` / `threads` / `runs`).
 - **Real Azure only.** No mock clients or canned responses in runtime code. If a required
   Azure setting is missing, fail loudly and list the `.env` variables to populate.
 - **Auth:** `DefaultAzureCredential` everywhere — never hardcoded keys.
-- **Persistence:** Azure Cosmos DB (async client). Each scenario names its container and a
+- **Persistence:** Azure Cosmos DB (.NET SDK). Each scenario names its container and a
   candidate partition key; the Researcher must validate the key against query patterns.
 - **Compliance baseline:** Content Safety on user text input, PII never logged, an audit
   log entry for every consequential mutation, and a **human-in-the-loop gate** before any
   consequential action is finalized.
-- **Frontend:** React + TypeScript + Tailwind, dark theme, `lucide-react` icons, plus a new
-  tab on the **Workflow visualization** page with one node per agent/service/gate/outcome
-  and a populated detail panel for each.
+- **Frontend:** React 18 + shadcn/ui + TanStack Query/Table + CopilotKit + Tailwind, dark theme,
+  `lucide-react` icons, plus a new tab on the **Workflow visualization** page with one node per
+  agent/service/gate/outcome and a populated detail panel for each.
 - **API prefix:** `/api/v1/...`. **Health:** `GET /api/health`.
 
 ---
@@ -59,7 +59,7 @@ client's mandate, and checks suitability — pausing at a human advisor approval
 any proposed trades are surfaced.
 
 **What gets built:**
-- Python FastAPI route: `POST /api/v1/portfolios/{portfolio_id}/analyze`
+- C# ASP.NET Core route: `POST /api/v1/portfolios/{portfolioId}/analyze`
 - 3 Azure AI Foundry **Prompt Agents** (Responses API v2):
   - `MarketRiskAgent` — computes VaR, beta, max drawdown, and concentration from positions
   - `RebalanceProposalAgent` — proposes trades to reach target allocation within constraints
@@ -100,7 +100,7 @@ ORCHESTRATION CONSTRAINT — use Microsoft Agent Framework (MAF):
 - Verify MAF checkpoint/state persistence to Cosmos DB and how the HITL gate suspends and
   resumes the workflow
 - The agents themselves must be Azure AI Foundry Prompt Agents called via the Responses
-  API v2 (azure-ai-projects, responses.create) — NOT the v1 Assistants API. Confirm how
+  API v2 (Azure.AI.Projects + Microsoft.Agents.AI) — NOT the v1 Assistants API. Confirm how
   MAF invokes a Responses-API-v2 agent as a workflow step
 
 Also research and decide:
@@ -108,7 +108,7 @@ Also research and decide:
   against the expected query patterns (by client, by date range)
 - Azure AI Search retrieval pattern for the client IPS document, and Bing grounding for
   market context — which agent uses which, and the verified SDK calls
-- Pydantic v2 model design for RebalanceProposal with nested per-agent outputs and a
+- Record (DTO) model design for RebalanceProposal with nested per-agent outputs and a
   bounded risk score
 - React allocation-donut + proposed-trades table pattern (recharts)
 - Workflow node definitions: 3 agent nodes + 1 MAF orchestration/service node + GATE-1 +
@@ -138,12 +138,12 @@ GATE-1 (Advisor Review), 1 outcome node, and the "Portfolio Rebalancing Pipeline
 ```
 
 Expected files created:
-- `backend/app/models/portfolio_models.py`
-- `backend/app/agents/market_risk_agent.py`
-- `backend/app/agents/rebalance_proposal_agent.py`
-- `backend/app/agents/suitability_agent.py`
-- `backend/app/orchestration/rebalance_workflow.py` (Microsoft Agent Framework workflow + HITL gate)
-- `backend/app/routers/portfolios.py`
+- `backend/FinancialServices.Api/Models/PortfolioModels.cs`
+- `backend/FinancialServices.Api/Agents/MarketRiskAgent.cs`
+- `backend/FinancialServices.Api/Agents/RebalanceProposalAgent.cs`
+- `backend/FinancialServices.Api/Agents/SuitabilityAgent.cs`
+- `backend/FinancialServices.Api/Orchestration/RebalanceWorkflow.cs` (Microsoft Agent Framework workflow + HITL gate)
+- `backend/FinancialServices.Api/Controllers/PortfoliosController.cs`
 - `frontend/src/types/portfolioTypes.ts`
 - `frontend/src/pages/Portfolios/PortfolioRiskPage.tsx`
 - `frontend/src/components/AllocationDonut.tsx`
@@ -158,7 +158,7 @@ Expected files created:
 ```
 
 The reviewer will check:
-- [ ] Agents use Responses API v2 (`responses.create`), not v1 Assistants
+- [ ] Agents use Responses API v2 via Microsoft Agent Framework, not v1 Assistants
 - [ ] MAF workflow runs risk + proposal in parallel, then suitability, with a real HITL gate
 - [ ] MAF state/checkpoint persisted to Cosmos DB; gate suspends and resumes correctly
 - [ ] Content Safety on any free-text input; PII (client identifiers, holdings) not logged
@@ -173,7 +173,7 @@ The reviewer will check:
   invocation from MAF documented; partition key `/client_id` validated; workflow nodes filled in.
 - **Plan:** Workflow Visualization phase present; every task references an exact file path;
   compliance tasks (audit, content safety, gate) included.
-- **Implement:** `GET http://localhost:8000/docs` shows `/api/v1/portfolios/{id}/analyze`;
+- **Implement:** `GET http://localhost:8000/openapi/v1.json` lists `/api/v1/portfolios/{id}/analyze`;
   `/workflow` shows the "Portfolio Rebalancing Pipeline" tab with clickable nodes; Settings
   shows risk-tolerance and max-position controls.
 - **Review:** doc at `.copilot-tracking/reviews/[today]/portfolio-rebalance-review.md`;
@@ -184,7 +184,7 @@ The reviewer will check:
 # Scenario 2 — Banking: Loan Credit Risk Scoring
 
 > **Focus: Foundry IQ** as the knowledge/grounding layer, with a lightweight **direct async
-> (`asyncio.gather`)** orchestration. Prompt Agents on the Responses API v2.
+> (`Task.WhenAll`)** orchestration. Prompt Agents on the Responses API v2.
 
 ## The Feature
 
@@ -194,10 +194,10 @@ KYC/AML status, and scans recent news — all grounded by a **Foundry IQ knowled
 and produces a structured risk report before a human approval gate.
 
 **What gets built:**
-- Python FastAPI route: `POST /api/v1/loans/assess`
+- C# ASP.NET Core route: `POST /api/v1/loans/assess`
 - 3 Azure AI Foundry **Prompt Agents** (Responses API v2): `CreditScoringAgent`,
   `KYCCheckAgent`, `NewsRiskAgent`
-- A lightweight orchestration service running the three agents in parallel (`asyncio.gather`)
+- A lightweight orchestration service running the three agents in parallel (`Task.WhenAll`)
 - **Foundry IQ knowledge base** grounding the KYC and credit agents over sanctions/PEP lists
   and company filings (agentic retrieval), with Bing grounding for current news
 - Cosmos DB storage for assessment results
@@ -232,19 +232,19 @@ KNOWLEDGE CONSTRAINT — use Foundry IQ:
   their answers through Foundry IQ's agentic retrieval (rather than hand-rolled AI Search
   queries). Document the exact SDK surface and any required resource/role setup
 - NewsRiskAgent uses Bing grounding for current adverse media — verify that SDK call
-- Confirm the agents are Prompt Agents on the Responses API v2 (azure-ai-projects,
-  responses.create) — NOT the v1 Assistants API
+- Confirm the agents are Prompt Agents on the Responses API v2 (Azure.AI.Projects +
+  Microsoft.Agents.AI) — NOT the v1 Assistants API
 
 ORCHESTRATION:
-- Lightweight: run the 3 agents concurrently with asyncio.gather in a service (no heavy
+- Lightweight: run the 3 agents concurrently with Task.WhenAll in a service (no heavy
   framework). Verify the correct async Foundry project-client usage for concurrent
-  responses.create calls and how to aggregate results safely
+  agent runs and how to aggregate results safely
 
 Also research and decide:
 - Cosmos DB container "assessments": validate partition key candidate /company_id (queries
   filter by company and date range)
-- Pydantic v2 model design for CreditAssessment with nested per-agent outputs and a bounded
-  0-100 risk score (field validator)
+- Record (DTO) model design for CreditAssessment with nested per-agent outputs and a bounded
+  0-100 risk score (validation attribute)
 - React gauge component pattern (recharts) for the risk score
 - Workflow node definitions: 3 agent nodes + 1 orchestration/service node + GATE-1 +
   "Assessment Finalized" outcome node, with detail-panel content for each
@@ -274,12 +274,12 @@ node, and the "Credit Risk Pipeline" tab.
 ```
 
 Expected files created:
-- `backend/app/models/loan_models.py`
-- `backend/app/agents/credit_scoring_agent.py`
-- `backend/app/agents/kyc_check_agent.py`
-- `backend/app/agents/news_risk_agent.py`
-- `backend/app/services/loan_orchestration_service.py` (asyncio.gather + Foundry IQ grounding)
-- `backend/app/routers/loans.py`
+- `backend/FinancialServices.Api/Models/LoanModels.cs`
+- `backend/FinancialServices.Api/Agents/CreditScoringAgent.cs`
+- `backend/FinancialServices.Api/Agents/KycCheckAgent.cs`
+- `backend/FinancialServices.Api/Agents/NewsRiskAgent.cs`
+- `backend/FinancialServices.Api/Services/LoanOrchestrationService.cs` (Task.WhenAll + Foundry IQ grounding)
+- `backend/FinancialServices.Api/Controllers/LoansController.cs`
 - `frontend/src/types/loanTypes.ts`
 - `frontend/src/pages/Loans/LoanAssessmentPage.tsx`
 - `frontend/src/components/RiskScoreGauge.tsx`
@@ -294,7 +294,7 @@ Expected files created:
 ```
 
 The reviewer will check:
-- [ ] Agents use Responses API v2 (`responses.create`), not v1 Assistants
+- [ ] Agents use Responses API v2 via Microsoft Agent Framework, not v1 Assistants
 - [ ] Credit/KYC agents ground through a Foundry IQ knowledge base (not ad-hoc AI Search)
 - [ ] Content Safety on loan application text input
 - [ ] PII not logged (applicant names, financials)
@@ -302,17 +302,17 @@ The reviewer will check:
 - [ ] Human gate present before assessment is finalized
 - [ ] DefaultAzureCredential used (not hardcoded keys)
 - [ ] All 3 agent nodes present in WorkflowPage with populated detail panels
-- [ ] Risk score bounded 0-100 (Pydantic validator)
+- [ ] Risk score bounded 0-100 (validation attribute)
 - [ ] Recommendation includes rationale (regulatory requirement)
 
 ## Verify after each phase
 
 - **Research:** Foundry IQ knowledge-base creation + attach-to-agent SDK surface verified;
-  Bing grounding call documented; `asyncio.gather` concurrency pattern for Responses-API-v2
+  Bing grounding call documented; `Task.WhenAll` concurrency pattern for Responses-API-v2
   calls documented; partition key `/company_id` validated; workflow nodes filled in.
 - **Plan:** Workflow Visualization phase present with specific node definitions; every task
   references an exact file path; compliance tasks (audit log, content safety, gate) included.
-- **Implement:** `GET http://localhost:8000/docs` shows `/api/v1/loans/assess`; `/workflow`
+  **Implement:** `GET http://localhost:8000/openapi/v1.json` lists `/api/v1/loans/assess`; `/workflow`
   shows the "Credit Risk Pipeline" tab with clickable nodes; Settings shows risk-threshold config.
 - **Review:** doc at `.copilot-tracking/reviews/[today]/loan-credit-risk-review.md`; verdict
   PASS or PASS WITH MINORS; zero Critical issues.
@@ -321,26 +321,26 @@ The reviewer will check:
 
 # Scenario 3 — Insurance: Claims Triage & Reserve Estimate
 
-> **Focus: LangChain / LangGraph orchestration** over agents **deployed as Azure-hosted
-> Foundry agents** (Hosted Agents), still on the Responses API v2.
+> **Focus: Hosted Agents deployed in Azure** (persistent compute + code interpreter),
+> orchestrated by a **Microsoft Agent Framework workflow**, on the Responses API v2.
 
 ## The Feature
 
 **Context:** A claims handler submits a First Notice of Loss (FNOL) with supporting
-documents. A LangChain-orchestrated multi-agent pipeline classifies the claim, scores fraud
+documents. A MAF-orchestrated multi-agent pipeline classifies the claim, scores fraud
 signals, and estimates the reserve — with the agents deployed as **Azure AI Foundry Hosted
 Agents** (persistent compute, code interpreter for actuarial math) — pausing at a human
 adjuster approval gate before the reserve is set.
 
 **What gets built:**
-- Python FastAPI route: `POST /api/v1/claims/triage`
+- C# ASP.NET Core route: `POST /api/v1/claims/triage`
 - 3 Azure AI Foundry **Hosted Agents** (Responses API v2):
   - `ClaimsTriageAgent` — classify claim type/severity; extract entities from the FNOL +
     documents (Azure Document Intelligence)
   - `FraudSignalAgent` — score fraud indicators against historical patterns (AI Search over
     prior claims)
   - `ReserveEstimateAgent` — estimate reserve / IBNR using actuarial logic (code interpreter)
-- **LangChain / LangGraph** graph orchestrating the three Hosted Agents (triage → parallel
+- **Microsoft Agent Framework** workflow orchestrating the three Hosted Agents (triage → parallel
   fraud + reserve), invoking each via the Responses API v2
 - Cosmos DB container `claims`
 - React page: Claims Triage with severity badge, fraud gauge, reserve estimate, route/approve
@@ -369,13 +369,13 @@ The feature should:
 5. React UI: severity badge, fraud gauge, reserve estimate, route/approve buttons
 6. New "Claims Triage Pipeline" tab in the Workflow page
 
-ORCHESTRATION CONSTRAINT — use LangChain / LangGraph:
-- Investigate and VERIFY the current LangChain + LangGraph packages and versions, and how to
-  build a graph that runs ClaimsTriageAgent first, then FraudSignalAgent and
-  ReserveEstimateAgent in parallel, then a human-in-the-loop interrupt before finalizing
-- Verify how LangChain/LangGraph invokes Azure AI Foundry agents through the Responses API
-  v2 (azure-ai-projects, responses.create) — NOT the v1 Assistants API — including auth with
-  DefaultAzureCredential
+ORCHESTRATION CONSTRAINT — use Microsoft Agent Framework (MAF):
+- Investigate and VERIFY the current `Microsoft.Agents.AI` package and version, and how to
+  build a MAF workflow that runs ClaimsTriageAgent first, then FraudSignalAgent and
+  ReserveEstimateAgent in parallel, then a human-in-the-loop gate before finalizing
+- Verify how MAF invokes Azure AI Foundry agents through the Responses API
+  v2 (`Azure.AI.Projects` + `Microsoft.Agents.AI[.AzureAI]`) — NOT the v1 Assistants API —
+  including auth with DefaultAzureCredential
 
 DEPLOYMENT CONSTRAINT — Hosted Agents in Azure:
 - The 3 agents must be deployed as Azure AI Foundry HOSTED Agents (persistent compute), not
@@ -387,10 +387,10 @@ Also research and decide:
 - Azure Document Intelligence model/SDK for extracting fields from FNOL documents
 - Cosmos DB container "claims": validate partition key candidate /policy_id against query
   patterns (by policy, by claim status, by date)
-- Pydantic v2 model design for ClaimAssessment with nested per-agent outputs, a bounded
+- Record (DTO) model design for ClaimAssessment with nested per-agent outputs, a bounded
   fraud score, and a reserve estimate with a confidence band
 - React severity-badge + fraud-gauge pattern
-- Workflow node definitions: 3 Hosted-Agent nodes + 1 LangGraph orchestration node + GATE-1
+- Workflow node definitions: 3 Hosted-Agent nodes + 1 MAF orchestration node + GATE-1
   + "Reserve Set" outcome node, with detail-panel content for each
 
 Research output file: .copilot-tracking/research/[today]/claims-triage-research.md
@@ -405,7 +405,7 @@ Research output file: .copilot-tracking/research/[today]/claims-triage-research.
 ```
 
 Expected plan (`.copilot-tracking/planning/[today]/claims-triage-plan.md`) should include a
-Workflow Visualization phase with: 3 Hosted-Agent nodes, 1 LangGraph orchestration node,
+Workflow Visualization phase with: 3 Hosted-Agent nodes, 1 MAF orchestration node,
 GATE-1 (Adjuster Review), 1 "Reserve Set" outcome node, and the "Claims Triage Pipeline" tab.
 
 ## PHASE 3: Implement
@@ -417,12 +417,12 @@ GATE-1 (Adjuster Review), 1 "Reserve Set" outcome node, and the "Claims Triage P
 ```
 
 Expected files created:
-- `backend/app/models/claim_models.py`
-- `backend/app/agents/claims_triage_agent.py`
-- `backend/app/agents/fraud_signal_agent.py`
-- `backend/app/agents/reserve_estimate_agent.py`
-- `backend/app/orchestration/claims_graph.py` (LangChain / LangGraph graph + HITL interrupt)
-- `backend/app/routers/claims.py`
+- `backend/FinancialServices.Api/Models/ClaimModels.cs`
+- `backend/FinancialServices.Api/Agents/ClaimsTriageAgent.cs`
+- `backend/FinancialServices.Api/Agents/FraudSignalAgent.cs`
+- `backend/FinancialServices.Api/Agents/ReserveEstimateAgent.cs`
+- `backend/FinancialServices.Api/Orchestration/ClaimsWorkflow.cs` (Microsoft Agent Framework workflow + HITL gate)
+- `backend/FinancialServices.Api/Controllers/ClaimsController.cs`
 - `frontend/src/types/claimTypes.ts`
 - `frontend/src/pages/Claims/ClaimsTriagePage.tsx`
 - `frontend/src/components/FraudGauge.tsx`
@@ -437,23 +437,23 @@ Expected files created:
 ```
 
 The reviewer will check:
-- [ ] Agents are Hosted Agents on the Responses API v2, invoked via LangChain/LangGraph
-- [ ] LangGraph runs triage → parallel fraud + reserve, with a real human interrupt gate
+- [ ] Agents are Hosted Agents on the Responses API v2, invoked via a Microsoft Agent Framework workflow
+- [ ] The MAF workflow runs triage → parallel fraud + reserve, with a real human-in-the-loop gate
 - [ ] Document Intelligence used for FNOL extraction; PII (claimant details) not logged
 - [ ] Content Safety on free-text loss description
 - [ ] Audit log entry for every claim assessment and every approve/route
 - [ ] DefaultAzureCredential used (not hardcoded keys)
-- [ ] Fraud score bounded and reserve estimate carries a confidence band (Pydantic validators)
+- [ ] Fraud score bounded and reserve estimate carries a confidence band (validation attributes)
 - [ ] All nodes present in the Workflow tab with populated detail panels
 
 ## Verify after each phase
 
-- **Research:** LangChain/LangGraph package + graph + HITL-interrupt pattern verified; Hosted
+- **Research:** MAF workflow + HITL-gate pattern verified; Hosted
   Agent create/deploy + code-interpreter + Responses-API-v2 invocation documented; Document
   Intelligence model chosen; partition key `/policy_id` validated; workflow nodes filled in.
 - **Plan:** Workflow Visualization phase present; every task references an exact file path;
   compliance tasks (audit, content safety, gate, Doc Intelligence) included.
-- **Implement:** `GET http://localhost:8000/docs` shows `/api/v1/claims/triage`; `/workflow`
+- **Implement:** `GET http://localhost:8000/openapi/v1.json` lists `/api/v1/claims/triage`; `/workflow`
   shows the "Claims Triage Pipeline" tab with clickable nodes; Settings shows fraud-threshold
   and reserve-confidence controls.
 - **Review:** doc at `.copilot-tracking/reviews/[today]/claims-triage-review.md`; verdict

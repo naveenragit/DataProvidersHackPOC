@@ -49,18 +49,18 @@ All research is scoped to:
 For every research task, cover:
 
 ### Codebase Analysis
-- Existing patterns in `backend/app/` (agents, routers, services, models, infra)
-- Existing patterns in `frontend/src/` (components, pages, utils, types)
+- Existing patterns in `backend/FinancialServices.Api/` (Agents, Controllers, Services, Models, Infrastructure)
+- Existing patterns in `frontend/src/` (components, pages, hooks, lib, types)
 - Existing Azure SDK usage and authentication patterns
 - Existing Cosmos DB container structure and partition keys
 - Current Workflow visualization data (`src/data/workflowData.ts` or similar)
 
 ### Azure Service Research
 - Identify the correct Azure service(s) for the task
-- Use MCP documentation tools to verify SDK API signatures
+- Use MCP documentation tools to verify .NET SDK API signatures
 - Verify authentication method (`DefaultAzureCredential` vs `ClientSecretCredential`)
-- Check for async vs sync client availability
-- Identify required environment variables and configuration
+- Confirm the correct NuGet package and target-framework compatibility (.NET 9)
+- Identify required configuration/options and environment variables
 
 ### Financial Domain Research
 - Applicable regulations and compliance requirements
@@ -124,7 +124,7 @@ After each subagent call:
 ### New Nodes
 - **{NodeName}** (Type: {type}, Color: {color})
   - Description: {what it does}
-  - Source File: {backend/app/agents/x.py}
+  - Source File: {backend/FinancialServices.Api/Agents/{Name}Agent.cs}
   - Responsibilities: {bullet list}
   - Data Flow: {inputs → outputs}
   - Technology: {Azure service tags}
@@ -142,7 +142,7 @@ After each subagent call:
 ### Selected Approach: {name}
 {detailed description}
 
-```python
+```csharp
 {example code}
 ```
 
@@ -150,8 +150,8 @@ After each subagent call:
 - **{Alternative}**: Rejected because {reason}
 
 ## Codebase Findings
-- `backend/app/infra/settings.py` L{n}: {finding}
-- `backend/app/agents/` pattern: {finding}
+- `backend/FinancialServices.Api/Infrastructure/AzureOptions.cs` L{n}: {finding}
+- `backend/FinancialServices.Api/Agents/` pattern: {finding}
 
 ## Evidence Log
 - Azure Documentation: {url} — {finding}

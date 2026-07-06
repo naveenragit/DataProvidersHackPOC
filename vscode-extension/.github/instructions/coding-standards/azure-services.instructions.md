@@ -1,9 +1,13 @@
 ---
 description: "Azure Data and AI Services integration standards for financial applications"
-applyTo: "**/*.py, **/*.ts, **/*.tsx"
+applyTo: "**/*.cs, **/*.ts, **/*.tsx"
 ---
 
 # Azure Services Integration Standards — Financial Services
+
+The service layer is **C# / ASP.NET Core (.NET 9)**. Use the official Azure `.NET` SDKs with
+`DefaultAzureCredential`. AI agents use the **Microsoft Agent Framework (.NET)** over
+**Azure AI Foundry**.
 
 ## Real Services Only — No Mocks or Fallbacks
 
@@ -11,57 +15,56 @@ The value is in **real, plugged-in Azure services**. Application code must call 
 resources — never simulate them.
 
 - No mock data, stub clients, or fake responses in runtime code. Mocks/fakes are allowed
-  **only in automated test code** (`pytest`, `vitest`).
+  **only in automated test code** (`xUnit`, `vitest`).
 - No silent fallbacks to canned/sample data when a service is unconfigured or unreachable.
-  Raise a clear error that names the missing `.env` variable or the failing service.
-- All Azure configuration comes from a populated `.env`. Missing required settings must fail
-  loudly — never substitute placeholder or fake values.
+  Raise a clear error that names the missing setting or the failing service.
+- All Azure configuration comes from bound `IOptions<T>` (environment variables / Key Vault).
+  Missing required settings must fail loudly at startup (`ValidateOnStart`) — never substitute
+  placeholder or fake values.
 
 ## Authentication
 
-Always use `DefaultAzureCredential` for production deployments. This works with:
+Always use `DefaultAzureCredential` for production deployments. It works with:
 - Managed Identity (Azure Container Apps, App Service, AKS)
 - Azure CLI (`az login`) for local development
-- Service Principal via environment variables as fallback
+- Service Principal via environment variables as a fallback
 
-```python
-# Python
-from azure.identity.aio import DefaultAzureCredential, ChainedTokenCredential, AzureCliCredential
+```csharp
+using Azure.Identity;
 
-credential = DefaultAzureCredential()
+// One credential instance, reused across clients
+var credential = new DefaultAzureCredential();
 
-# For local dev fallback only — never commit service principal secrets
-# Set AZURE_CLIENT_ID, AZURE_CLIENT_SECRET, AZURE_TENANT_ID in .env
+// For local dev fallback only — never commit service principal secrets.
+// Set AZURE_CLIENT_ID, AZURE_CLIENT_SECRET, AZURE_TENANT_ID in the environment.
 ```
 
 ```typescript
-// TypeScript — credentials are always handled server-side
-// Frontend never holds Azure credentials
+// TypeScript — credentials are always handled server-side.
+// The frontend never holds Azure credentials.
 ```
 
-**Required environment variables (`.env.example`):**
+**Required environment variables (`.env.example` / App Settings):**
 ```
 # Azure AI Foundry
-AZURE_AI_PROJECT_ENDPOINT=https://<hub>.services.ai.azure.com/api/projects/<project>
-AZURE_AI_PROJECT_SUBSCRIPTION_ID=
-AZURE_AI_PROJECT_RESOURCE_GROUP=
-AZURE_AI_PROJECT_NAME=
+AZURE__AiProjectEndpoint=https://<hub>.services.ai.azure.com/api/projects/<project>
+AZURE__AiProjectName=
 
-# Azure OpenAI
-AZURE_OPENAI_ENDPOINT=https://<name>.openai.azure.com/
-AZURE_OPENAI_API_VERSION=2024-12-01-preview
+# Azure OpenAI (used by the CopilotKit Node runtime sidecar)
+AZURE__OpenAiEndpoint=https://<name>.openai.azure.com/
+AZURE__OpenAiApiVersion=2024-12-01-preview
 
 # Azure Cosmos DB
-COSMOS_ENDPOINT=https://<name>.documents.azure.com:443/
-COSMOS_DATABASE=<database-name>
+AZURE__CosmosEndpoint=https://<name>.documents.azure.com:443/
+AZURE__CosmosDatabase=<database-name>
 
 # Azure AI Search
-AZURE_SEARCH_ENDPOINT=https://<name>.search.windows.net
-AZURE_SEARCH_INDEX=<index-name>
+AZURE__SearchEndpoint=https://<name>.search.windows.net
+AZURE__SearchIndex=<index-name>
 
 # Azure Speech
-AZURE_SPEECH_KEY=
-AZURE_SPEECH_REGION=eastus
+AZURE__SpeechKey=
+AZURE__SpeechRegion=eastus
 
 # Azure Monitor
 APPLICATIONINSIGHTS_CONNECTION_STRING=
@@ -72,93 +75,92 @@ AZURE_CLIENT_SECRET=
 AZURE_TENANT_ID=
 ```
 
+> The double-underscore (`AZURE__Name`) convention binds environment variables to the nested
+> `AzureOptions` configuration section in ASP.NET Core.
+
 ---
 
-## Azure AI Foundry (MAF — Microsoft Agent Framework)
+## Azure AI Foundry — Microsoft Agent Framework (.NET)
 
-The **Responses API v2** with `azure-ai-projects` SDK is the standard for all agent work.
+Agents are authored in Azure AI Foundry and invoked through the Microsoft Agent Framework
+`.NET` SDK. Define agents in Foundry; reference them by name in code — never recreate on every
+request.
 
-```python
-# Install: azure-ai-projects>=1.0.0
-from azure.ai.projects.aio import AIProjectClient
-from azure.ai.projects.models import (
-    MessageTextContent,
-    AgentThread,
-    RunStatus,
-)
-from azure.identity.aio import DefaultAzureCredential
+```csharp
+// PackageReference: Microsoft.Agents.AI, Azure.AI.Projects, Azure.Identity
+using Azure.AI.Projects;
+using Azure.Identity;
+using Microsoft.Agents.AI;
 
-async def create_foundry_client() -> AIProjectClient:
-    return AIProjectClient(
-        endpoint=settings.azure_ai_project_endpoint,
-        credential=DefaultAzureCredential(),
-    )
+public sealed class FoundryAgentClient(IOptions<AzureOptions> options)
+{
+    private readonly AzureOptions _options = options.Value;
 
-# Agent definition pattern — define agents in Azure AI Foundry Studio
-# Reference them by name in code, never recreate on every request
-async def get_or_create_agent(client: AIProjectClient, name: str, instructions: str, model: str):
-    agents = await client.agents.list_agents()
-    for agent in agents.data:
-        if agent.name == name:
-            return agent
-    return await client.agents.create_agent(
-        model=model,
-        name=name,
-        instructions=instructions,
-    )
+    private AIProjectClient CreateProjectClient() =>
+        new(new Uri(_options.AiProjectEndpoint), new DefaultAzureCredential());
+
+    public async Task<string> RunAgentAsync(
+        string agentName, string prompt, CancellationToken ct)
+    {
+        AIAgent agent = await CreateProjectClient()
+            .GetAIAgentAsync(agentName, cancellationToken: ct);
+        AgentRunResponse response = await agent.RunAsync(prompt, cancellationToken: ct);
+        return response.Text;
+    }
+}
 ```
 
 ### Agent Naming Convention
 
-```
-{Domain}{Function}Agent
-```
-Examples:
-- `PortfolioAnalysisAgent` — Analyzes portfolio composition and risk
-- `MarketIntelligenceAgent` — Fetches and synthesizes market news
-- `TranscriptionAgent` — Converts speech to structured transcript
-- `RiskAdvisoryAgent` — Evaluates and scores financial risk
-- `RebalanceAgent` — Generates rebalancing recommendations
-- `ComplianceAgent` — Checks regulatory compliance
+`{Domain}{Function}Agent` — for example:
+- `PortfolioAnalysisAgent` — analyzes portfolio composition and risk
+- `MarketIntelligenceAgent` — fetches and synthesizes market news (with grounding)
+- `RiskAdvisoryAgent` — evaluates and scores financial risk
+- `RebalanceAgent` — generates rebalancing recommendations
+- `ComplianceAgent` — checks regulatory compliance
+
+### Grounding for Market Data
+
+Attach grounding/tool connections defined in the Foundry project when the agent needs current
+market data. Configure the connection in Foundry and reference it by connection id from options.
 
 ---
 
 ## Azure Cosmos DB
 
-Use the **async SDK** with `DefaultAzureCredential`. Partition keys must align with access patterns.
+Register `CosmosClient` as a **singleton** with `DefaultAzureCredential`. Partition keys must
+align with access patterns.
 
-```python
-# Install: azure-cosmos>=4.7.0
-from azure.cosmos.aio import CosmosClient
-from azure.identity.aio import DefaultAzureCredential
+```csharp
+// PackageReference: Microsoft.Azure.Cosmos
+using Microsoft.Azure.Cosmos;
 
-async def upsert_session(session_id: str, data: dict, client_id: str) -> dict:
-    credential = DefaultAzureCredential()
-    cosmos = CosmosClient(url=settings.cosmos_endpoint, credential=credential)
-    db = cosmos.get_database_client(settings.cosmos_database)
-    container = db.get_container_client("sessions")
-
-    item = {
-        "id": session_id,
-        "client_id": client_id,  # Partition key
-        **data,
-    }
-    return await container.upsert_item(item)
+public async Task<SessionDocument> UpsertSessionAsync(
+    SessionDocument session, CancellationToken ct)
+{
+    Container container = _cosmos.GetContainer(_options.CosmosDatabase, "sessions");
+    ItemResponse<SessionDocument> response = await container.UpsertItemAsync(
+        session,
+        new PartitionKey(session.ClientId),   // Partition key
+        cancellationToken: ct);
+    return response.Resource;
+}
 ```
 
 ### Container Design
 
 | Container | Partition Key | Purpose |
 |---|---|---|
-| `clients` | `/advisor_id` | Client profiles, KYC data |
-| `sessions` | `/client_id` | Meeting/interaction sessions |
-| `portfolios` | `/client_id` | Portfolio positions and history |
-| `backtests` | `/client_id` | Backtesting results |
-| `audit_log` | `/advisor_id` | Immutable audit trail |
-| `rebalance_reports` | `/client_id` | Rebalancing history |
+| `clients` | `/advisorId` | Client profiles, KYC data |
+| `sessions` | `/clientId` | Meeting/interaction sessions |
+| `portfolios` | `/clientId` | Portfolio positions and history |
+| `backtests` | `/clientId` | Backtesting results |
+| `auditLog` | `/advisorId` | Immutable audit trail |
+| `rebalanceReports` | `/clientId` | Rebalancing history |
 
-Always set `enable_cross_partition_query=True` for cross-partition queries.
-Use `query_items` with `max_item_count` for paginated results.
+Prefer point reads (`ReadItemAsync` with id + partition key) over queries. Use
+`QueryDefinition` with parameters (never string concatenation) and page with
+`FeedIterator` + `MaxItemCount`.
 
 ---
 
@@ -166,32 +168,37 @@ Use `query_items` with `max_item_count` for paginated results.
 
 Use **hybrid search** (vector + keyword) for all financial document retrieval.
 
-```python
-# Install: azure-search-documents>=11.6.0
-from azure.search.documents.aio import SearchClient
-from azure.search.documents.models import VectorizableTextQuery
-from azure.identity.aio import DefaultAzureCredential
+```csharp
+// PackageReference: Azure.Search.Documents
+using Azure.Search.Documents;
+using Azure.Search.Documents.Models;
 
-async def hybrid_search(query: str, top: int = 5) -> list[dict]:
-    client = SearchClient(
-        endpoint=settings.azure_search_endpoint,
-        index_name=settings.azure_search_index,
-        credential=DefaultAzureCredential(),
-    )
-    async with client:
-        results = await client.search(
-            search_text=query,
-            vector_queries=[
-                VectorizableTextQuery(
-                    text=query,
-                    k_nearest_neighbors=50,
-                    fields="content_vector",
-                )
-            ],
-            top=top,
-            select=["id", "title", "content", "source", "instrument_id", "document_date"],
-        )
-        return [result async for result in results]
+public async Task<IReadOnlyList<SearchDocument>> HybridSearchAsync(
+    string query, int top, CancellationToken ct)
+{
+    var client = new SearchClient(
+        new Uri(_options.SearchEndpoint), _options.SearchIndex, new DefaultAzureCredential());
+
+    var searchOptions = new SearchOptions
+    {
+        Size = top,
+        VectorSearch = new()
+        {
+            Queries = { new VectorizableTextQuery(query) { KNearestNeighborsCount = 50, Fields = { "contentVector" } } }
+        },
+    };
+    searchOptions.Select.Add("id");
+    searchOptions.Select.Add("title");
+    searchOptions.Select.Add("content");
+    searchOptions.Select.Add("instrumentId");
+    searchOptions.Select.Add("documentDate");
+
+    SearchResults<SearchDocument> results = await client.SearchAsync<SearchDocument>(query, searchOptions, ct);
+    var docs = new List<SearchDocument>();
+    await foreach (SearchResult<SearchDocument> r in results.GetResultsAsync())
+        docs.Add(r.Document);
+    return docs;
+}
 ```
 
 ### Index Schema for Financial Documents
@@ -202,64 +209,62 @@ async def hybrid_search(query: str, top: int = 5) -> list[dict]:
     { "name": "id", "type": "Edm.String", "key": true },
     { "name": "title", "type": "Edm.String", "searchable": true },
     { "name": "content", "type": "Edm.String", "searchable": true },
-    { "name": "instrument_id", "type": "Edm.String", "filterable": true },
-    { "name": "document_type", "type": "Edm.String", "filterable": true, "facetable": true },
-    { "name": "document_date", "type": "Edm.DateTimeOffset", "sortable": true, "filterable": true },
-    { "name": "content_vector", "type": "Collection(Edm.Single)", "searchable": true, "vectorSearchDimensions": 1536 }
+    { "name": "instrumentId", "type": "Edm.String", "filterable": true },
+    { "name": "documentType", "type": "Edm.String", "filterable": true, "facetable": true },
+    { "name": "documentDate", "type": "Edm.DateTimeOffset", "sortable": true, "filterable": true },
+    { "name": "contentVector", "type": "Collection(Edm.Single)", "searchable": true, "vectorSearchDimensions": 1536 }
   ]
 }
 ```
+
+Build `$filter` clauses with `SearchFilter.Create($"...")` to avoid injection.
 
 ---
 
 ## Azure Speech Services
 
-Use the **REST API** for batch transcription and the **SDK** for real-time streaming.
+Use the **SDK** for real-time streaming and the REST API for batch transcription.
 
-```python
-# Install: azure-cognitiveservices-speech>=1.38.0
-import azure.cognitiveservices.speech as speechsdk
+```csharp
+// PackageReference: Microsoft.CognitiveServices.Speech
+using Microsoft.CognitiveServices.Speech;
 
-def create_speech_config() -> speechsdk.SpeechConfig:
-    config = speechsdk.SpeechConfig(
-        subscription=settings.azure_speech_key,
-        region=settings.azure_speech_region,
-    )
-    config.speech_recognition_language = "en-US"
-    # Financial terminology optimization
-    config.set_property(
-        speechsdk.PropertyId.SpeechServiceConnection_EndSilenceTimeoutMs, "2000"
-    )
-    return config
+public SpeechConfig CreateSpeechConfig()
+{
+    var config = SpeechConfig.FromSubscription(_options.SpeechKey, _options.SpeechRegion);
+    config.SpeechRecognitionLanguage = "en-US";
+    config.RequestWordLevelTimestamps();
+    // Financial meeting scenarios: extend end-of-sentence silence
+    config.SetProperty(PropertyId.SpeechServiceConnection_EndSilenceTimeoutMs, "2000");
+    return config;
+}
 ```
+
+Stream results to the frontend over a **SignalR hub** (`/hubs/transcription`).
 
 ---
 
 ## Azure AI Content Safety
 
-Run content safety checks on ALL user-provided text before passing to agents.
+Run content safety checks on ALL user-provided text before passing it to agents.
 
-```python
-# Install: azure-ai-contentsafety>=1.0.0
-from azure.ai.contentsafety.aio import ContentSafetyClient
-from azure.ai.contentsafety.models import AnalyzeTextOptions, TextCategory
-from azure.identity.aio import DefaultAzureCredential
+```csharp
+// PackageReference: Azure.AI.ContentSafety
+using Azure.AI.ContentSafety;
 
-async def check_content_safety(text: str) -> bool:
-    """Returns True if content is safe, raises ValueError if not."""
-    client = ContentSafetyClient(
-        endpoint=settings.content_safety_endpoint,
-        credential=DefaultAzureCredential(),
-    )
-    async with client:
-        request = AnalyzeTextOptions(text=text)
-        response = await client.analyze_text(request)
-        for item in response.categories_analysis:
-            if item.severity and item.severity >= 4:
-                raise ValueError(
-                    f"Content safety violation: {item.category} severity {item.severity}"
-                )
-    return True
+public async Task EnsureSafeAsync(string text, CancellationToken ct)
+{
+    var client = new ContentSafetyClient(
+        new Uri(_options.ContentSafetyEndpoint), new DefaultAzureCredential());
+
+    AnalyzeTextResult result = await client.AnalyzeTextAsync(new AnalyzeTextOptions(text), ct);
+
+    // Financial platforms have low tolerance — flag severity >= 2
+    var violation = result.CategoriesAnalysis.FirstOrDefault(c => c.Severity >= 2);
+    if (violation is not null)
+        throw new ContentSafetyException(
+            $"Content safety violation: {violation.Category} severity {violation.Severity}");
+}
 ```
 
 ---
@@ -268,27 +273,20 @@ async def check_content_safety(text: str) -> bool:
 
 For processing financial documents (annual reports, prospectuses, policy documents).
 
-```python
-# Install: azure-ai-documentintelligence>=1.0.0
-from azure.ai.documentintelligence.aio import DocumentIntelligenceClient
-from azure.identity.aio import DefaultAzureCredential
+```csharp
+// PackageReference: Azure.AI.DocumentIntelligence
+using Azure.AI.DocumentIntelligence;
 
-async def analyze_financial_document(document_url: str) -> dict:
-    client = DocumentIntelligenceClient(
-        endpoint=settings.document_intelligence_endpoint,
-        credential=DefaultAzureCredential(),
-    )
-    async with client:
-        poller = await client.begin_analyze_document(
-            model_id="prebuilt-layout",
-            body={"url_source": document_url},
-        )
-        result = await poller.result()
-        return {
-            "pages": len(result.pages),
-            "tables": [t.as_dict() for t in (result.tables or [])],
-            "content": result.content,
-        }
+public async Task<AnalyzeResult> AnalyzeDocumentAsync(Uri documentUri, CancellationToken ct)
+{
+    var client = new DocumentIntelligenceClient(
+        new Uri(_options.DocumentIntelligenceEndpoint), new DefaultAzureCredential());
+
+    Operation<AnalyzeResult> op = await client.AnalyzeDocumentAsync(
+        WaitUntil.Completed, "prebuilt-layout",
+        new AnalyzeDocumentContent { UrlSource = documentUri }, cancellationToken: ct);
+    return op.Value;
+}
 ```
 
 ---
@@ -297,27 +295,21 @@ async def analyze_financial_document(document_url: str) -> dict:
 
 All agent calls, database operations, and external API calls must be instrumented.
 
-```python
-# app/infra/telemetry.py
-from azure.monitor.opentelemetry import configure_azure_monitor
-from opentelemetry import trace
-from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
-from opentelemetry.instrumentation.httpx import HTTPXClientInstrumentor
+```csharp
+// PackageReference: Azure.Monitor.OpenTelemetry.AspNetCore
+builder.Services.AddOpenTelemetry()
+    .UseAzureMonitor()                         // APPLICATIONINSIGHTS_CONNECTION_STRING
+    .WithTracing(t => t
+        .AddSource("FinancialServices.Agents")
+        .AddAspNetCoreInstrumentation()
+        .AddHttpClientInstrumentation());
 
-def setup_telemetry():
-    configure_azure_monitor()
-    FastAPIInstrumentor().instrument()
-    HTTPXClientInstrumentor().instrument()
+// Create spans in agent/service code (never put PII values into attributes)
+private static readonly ActivitySource Activity = new("FinancialServices.Agents");
 
-tracer = trace.get_tracer("financial-ai-app")
-
-# Span attributes for financial context (never log PII values)
-SPAN_ATTRS = {
-    "portfolio.id": "portfolio_id",
-    "session.id": "session_id",
-    "agent.name": "agent_name",
-    "operation.type": "operation_type",
-}
+using var span = Activity.StartActivity("portfolio_analysis");
+span?.SetTag("portfolio.id", portfolioId);
+span?.SetTag("session.id", sessionId);
 ```
 
 ---
@@ -328,7 +320,7 @@ All services deploy to **Azure Container Apps** or **Azure App Service** with:
 - Managed Identity enabled
 - Application Insights connected
 - Key Vault references for secrets
-- Bicep/ARM templates in `infra/` directory
+- Bicep/ARM templates in the `infra/` directory
 
 ```
 infra/
@@ -342,3 +334,6 @@ infra/
     ├── dev.bicepparam
     └── prod.bicepparam
 ```
+
+The CopilotKit Node runtime sidecar deploys as a **separate container/app** alongside the C#
+API and is granted only the Azure OpenAI access it needs.

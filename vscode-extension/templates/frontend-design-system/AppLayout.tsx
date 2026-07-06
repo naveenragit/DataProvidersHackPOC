@@ -1,15 +1,15 @@
 // Copy to frontend/src/components/layout/AppLayout.tsx
-// Two-column app shell: fixed dark sidebar + (top bar over scrollable content).
-// Matches the reference design: full-height, no body scroll, content scrolls in <main>.
+// Two-column app shell: fixed sidebar + top bar over scrollable content.
+// Uses shadcn tokens (bg-background, text-foreground) so it tracks the theme.
 import { Outlet } from 'react-router-dom'
-import Sidebar from './Sidebar'
-import TopBar from './TopBar'
+import { Sidebar } from './Sidebar'
+import { TopBar } from './TopBar'
 
-export default function AppLayout() {
+export function AppLayout() {
   return (
-    <div className="flex h-screen overflow-hidden bg-surface text-gray-100">
+    <div className="flex h-screen overflow-hidden bg-background text-foreground">
       <Sidebar />
-      <div className="flex flex-col flex-1 min-w-0 overflow-hidden">
+      <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
         <TopBar />
         <main className="flex-1 overflow-y-auto p-6">
           <Outlet />

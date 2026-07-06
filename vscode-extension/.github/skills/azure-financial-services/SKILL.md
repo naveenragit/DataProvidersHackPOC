@@ -3,11 +3,14 @@
 Domain-specific knowledge and implementation patterns for Azure Data and AI Services
 in regulated financial services applications (Capital Markets, Banking, Insurance).
 
+The service layer is **C# / ASP.NET Core (.NET 9)**; agents use the **Microsoft Agent
+Framework (.NET)** over **Azure AI Foundry**.
+
 ## When to Use This Skill
 
 Load this skill when:
 - Selecting the right Azure service for a financial use case
-- Implementing Azure SDK integrations (authentication, client setup, error handling)
+- Implementing Azure `.NET` SDK integrations (authentication, client setup, error handling)
 - Designing Cosmos DB schemas for financial data
 - Setting up Azure AI Search for financial document retrieval
 - Implementing Azure AI Foundry multi-agent pipelines for financial workflows
@@ -18,31 +21,29 @@ Load this skill when:
 ## Azure AI Foundry — Agent Patterns for Finance
 
 ### Capital Markets Agent Pipeline
-```python
-# Parallel pre-meeting research: news + advisory analysis
-async def run_pre_meeting_prep(client_id: str, meeting_id: str) -> dict:
-    """Run NewsAgent and AdvisoryAgent concurrently, merge into briefing."""
-    async with AIProjectClient(
-        endpoint=settings.azure_ai_project_endpoint,
-        credential=DefaultAzureCredential(),
-    ) as client:
-        news_thread = await client.agents.create_thread()
-        advisory_thread = await client.agents.create_thread()
 
-        # Run agents concurrently
-        news_task = run_agent_thread(client, "NewsAgent", news_thread.id, client_id)
-        advisory_task = run_agent_thread(client, "AdvisoryAgent", advisory_thread.id, client_id)
-        news_result, advisory_result = await asyncio.gather(news_task, advisory_task)
+Run independent agents concurrently with `Task.WhenAll`, then merge into a briefing.
 
-        return {
-            "news_summary": news_result,
-            "advisory_insights": advisory_result,
-            "client_id": client_id,
-            "meeting_id": meeting_id,
-        }
+```csharp
+public async Task<PreMeetingBriefing> RunPreMeetingPrepAsync(
+    string clientId, string meetingId, CancellationToken ct)
+{
+    // NewsAgent and AdvisoryAgent run concurrently
+    var newsTask = _foundry.RunAgentAsync("MarketIntelligenceAgent", clientId, ct);
+    var advisoryTask = _foundry.RunAgentAsync("AdvisoryAgent", clientId, ct);
+
+    await Task.WhenAll(newsTask, advisoryTask);
+
+    return new PreMeetingBriefing(
+        NewsSummary: newsTask.Result,
+        AdvisoryInsights: advisoryTask.Result,
+        ClientId: clientId,
+        MeetingId: meetingId);
+}
 ```
 
 ### Agent Model Assignments
+
 Recommended model selection for financial agents:
 
 | Agent Type | Model | Reason |
@@ -50,92 +51,91 @@ Recommended model selection for financial agents:
 | Transcription / Extraction | `gpt-4o` | Accuracy on financial names and terminology |
 | Portfolio Analysis | `gpt-4.1` | Deeper quantitative reasoning |
 | Recommendation | `o4-mini` | Fast iterative recommendations |
-| Advisory / Research | `o4-mini` with Bing Grounding | Current market data |
+| Advisory / Research | `o4-mini` with grounding | Current market data |
 | Tax / Compliance | `o4-mini` | Regulatory interpretation |
 | Risk Advisory | `gpt-4.1` | Complex risk narrative |
 | Portfolio Construction | `o1` | Mathematical optimization |
 
-### Bing Grounding for Market Data
-```python
-from azure.ai.projects.models import BingGroundingTool
+### Grounding for Market Data
 
-bing_tool = BingGroundingTool(
-    connection_id=settings.bing_connection_id
-)
-agent = await client.agents.create_agent(
-    model="o4-mini",
-    name="MarketIntelligenceAgent",
-    instructions="You analyze financial markets...",
-    tools=bing_tool.definitions,
-)
+Grounding/tool connections are configured on the agent in Azure AI Foundry and referenced by
+connection id. The `.NET` agent picks them up when you invoke the named agent.
+
+```csharp
+// Connection id comes from bound options; the agent is defined with the grounding tool in Foundry.
+AIAgent marketAgent = await projectClient
+    .GetAIAgentAsync("MarketIntelligenceAgent", cancellationToken: ct);
+AgentRunResponse response = await marketAgent.RunAsync(
+    "Summarize market-moving news for the client's holdings.", cancellationToken: ct);
 ```
 
 ---
 
 ## Cosmos DB — Financial Data Schemas
 
-### Client Profile Container (`clients`, pk: `/advisor_id`)
+Documents use camelCase properties (configure `CosmosPropertyNamingPolicy.CamelCase`).
+
+### Client Profile Container (`clients`, pk: `/advisorId`)
 ```json
 {
   "id": "cli_001",
-  "advisor_id": "adv_001",
+  "advisorId": "adv_001",
   "name": "John Smith",
-  "risk_profile": "moderate",
+  "riskProfile": "moderate",
   "goals": ["retirement_2035", "college_2028"],
-  "life_events": ["marriage_2023"],
-  "asset_mentions": ["AAPL", "MSFT"],
-  "estate_notes": "...",
-  "kyc_status": "verified",
-  "kyc_last_verified": "2024-01-15T00:00:00Z",
-  "created_at": "2023-01-01T00:00:00Z",
-  "updated_at": "2024-01-15T00:00:00Z"
+  "lifeEvents": ["marriage_2023"],
+  "assetMentions": ["AAPL", "MSFT"],
+  "kycStatus": "verified",
+  "kycLastVerified": "2024-01-15T00:00:00Z",
+  "createdAt": "2023-01-01T00:00:00Z",
+  "updatedAt": "2024-01-15T00:00:00Z"
 }
 ```
 
-### Session/Meeting Container (`sessions`, pk: `/client_id`)
+### Session/Meeting Container (`sessions`, pk: `/clientId`)
 ```json
 {
   "id": "sess_001",
-  "client_id": "cli_001",
-  "advisor_id": "adv_001",
-  "start_time": "2024-01-15T10:00:00Z",
-  "end_time": "2024-01-15T11:00:00Z",
-  "transcript": [...],
-  "sentiment_data": {...},
-  "recommendations": [...],
-  "summaries": {...},
+  "clientId": "cli_001",
+  "advisorId": "adv_001",
+  "startTime": "2024-01-15T10:00:00Z",
+  "endTime": "2024-01-15T11:00:00Z",
+  "transcript": [],
+  "recommendations": [],
   "status": "completed",
-  "gate_1_approved": true,
-  "gate_1_approved_by": "adv_001",
-  "gate_1_approved_at": "2024-01-15T11:15:00Z"
+  "gate1Approved": true,
+  "gate1ApprovedBy": "adv_001",
+  "gate1ApprovedAt": "2024-01-15T11:15:00Z"
 }
 ```
 
-### Portfolio Container (`portfolios`, pk: `/client_id`)
+### Portfolio Container (`portfolios`, pk: `/clientId`)
 ```json
 {
   "id": "pf_001",
-  "client_id": "cli_001",
-  "advisor_id": "adv_001",
-  "total_value": 1250000.00,
+  "clientId": "cli_001",
+  "advisorId": "adv_001",
+  "totalValue": 1250000.00,
   "currency": "USD",
   "benchmark": "SPY",
   "positions": [
     {
-      "instrument_id": "US0378331005",
+      "instrumentId": "US0378331005",
       "ticker": "AAPL",
-      "asset_class": "equity",
+      "assetClass": "equity",
       "quantity": 100,
-      "market_value": 18500.00,
+      "marketValue": 18500.00,
       "weight": 0.0148,
-      "cost_basis": 15000.00
+      "costBasis": 15000.00
     }
   ],
-  "risk_score": 62.5,
-  "last_rebalanced": "2024-01-01T00:00:00Z",
-  "updated_at": "2024-01-15T00:00:00Z"
+  "riskScore": 62.5,
+  "lastRebalanced": "2024-01-01T00:00:00Z",
+  "updatedAt": "2024-01-15T00:00:00Z"
 }
 ```
+
+Use `decimal` (never `double`) when mapping monetary values into C# records.
 
 ---
 
@@ -145,76 +145,77 @@ agent = await client.agents.create_agent(
 
 | Index | Content | Key Fields |
 |---|---|---|
-| `cmclients` | Client documents, meeting notes, KYC records | `advisor_id`, `client_id`, `document_type` |
-| `cmmeetings` | Meeting transcripts, summaries, action items | `session_id`, `client_id`, `meeting_date` |
-| `cmdocuments` | Research reports, prospectuses, annual reports, earnings | `instrument_id`, `document_type`, `document_date` |
+| `cmclients` | Client documents, meeting notes, KYC records | `advisorId`, `clientId`, `documentType` |
+| `cmmeetings` | Meeting transcripts, summaries, action items | `sessionId`, `clientId`, `meetingDate` |
+| `cmdocuments` | Research reports, prospectuses, annual reports, earnings | `instrumentId`, `documentType`, `documentDate` |
 
 ### Hybrid Search for Financial Research
-```python
-async def search_financial_research(
-    query: str,
-    instrument_id: str | None = None,
-    document_type: str | None = None,
-    top: int = 5,
-) -> list[dict]:
-    filter_parts = []
-    if instrument_id:
-        filter_parts.append(f"instrument_id eq '{instrument_id}'")
-    if document_type:
-        filter_parts.append(f"document_type eq '{document_type}'")
 
-    client = SearchClient(
-        endpoint=settings.azure_search_endpoint,
-        index_name="cmdocuments",
-        credential=DefaultAzureCredential(),
-    )
-    async with client:
-        results = await client.search(
-            search_text=query,
-            filter=" and ".join(filter_parts) if filter_parts else None,
-            vector_queries=[
-                VectorizableTextQuery(text=query, k_nearest_neighbors=50, fields="content_vector")
-            ],
-            top=top,
-            select=["id", "title", "content", "instrument_id", "document_type", "document_date", "source_url"],
-        )
-        return [r async for r in results]
+```csharp
+public async Task<IReadOnlyList<SearchDocument>> SearchFinancialResearchAsync(
+    string query, string? instrumentId, string? documentType, int top, CancellationToken ct)
+{
+    var filters = new List<string>();
+    if (instrumentId is not null)
+        filters.Add(SearchFilter.Create($"instrumentId eq {instrumentId}"));
+    if (documentType is not null)
+        filters.Add(SearchFilter.Create($"documentType eq {documentType}"));
+
+    var client = new SearchClient(
+        new Uri(_options.SearchEndpoint), "cmdocuments", new DefaultAzureCredential());
+
+    var options = new SearchOptions
+    {
+        Size = top,
+        Filter = filters.Count > 0 ? string.Join(" and ", filters) : null,
+        VectorSearch = new()
+        {
+            Queries = { new VectorizableTextQuery(query) { KNearestNeighborsCount = 50, Fields = { "contentVector" } } }
+        },
+    };
+    foreach (var f in new[] { "id", "title", "content", "instrumentId", "documentType", "documentDate", "sourceUrl" })
+        options.Select.Add(f);
+
+    SearchResults<SearchDocument> results = await client.SearchAsync<SearchDocument>(query, options, ct);
+    var docs = new List<SearchDocument>();
+    await foreach (var r in results.GetResultsAsync()) docs.Add(r.Document);
+    return docs;
+}
 ```
+
+`SearchFilter.Create($"...")` parameterizes interpolated values to prevent filter injection.
 
 ---
 
 ## Azure Speech — Financial Meeting Transcription
 
 ### Optimizing for Financial Terminology
-```python
-def create_speech_config_for_finance() -> speechsdk.SpeechConfig:
-    config = speechsdk.SpeechConfig(
-        subscription=settings.azure_speech_key,
-        region=settings.azure_speech_region,
-    )
-    config.speech_recognition_language = "en-US"
-    # Reduce end-of-sentence silence detection for meeting scenarios
-    config.set_property(speechsdk.PropertyId.SpeechServiceConnection_EndSilenceTimeoutMs, "2000")
-    # Enable word-level timestamps for compliance
-    config.request_word_level_timestamps()
-    # Enable speaker diarization
-    config.set_property(speechsdk.PropertyId.SpeechServiceConnection_RecognizedSpeechDuration, "true")
-    return config
+
+```csharp
+public SpeechConfig CreateSpeechConfigForFinance()
+{
+    var config = SpeechConfig.FromSubscription(_options.SpeechKey, _options.SpeechRegion);
+    config.SpeechRecognitionLanguage = "en-US";
+    // Reduce end-of-sentence silence detection for meeting scenarios
+    config.SetProperty(PropertyId.SpeechServiceConnection_EndSilenceTimeoutMs, "2000");
+    // Word-level timestamps for compliance
+    config.RequestWordLevelTimestamps();
+    return config;
+}
 ```
 
 ### Financial Phrase List (improve recognition accuracy)
-```python
-phrase_list = speechsdk.PhraseListGrammar.from_recognizer(recognizer)
-phrase_list.addPhrase("EBITDA")
-phrase_list.addPhrase("VaR")
-phrase_list.addPhrase("alpha generation")
-phrase_list.addPhrase("basis points")
-phrase_list.addPhrase("rebalancing")
-phrase_list.addPhrase("KYC")
-phrase_list.addPhrase("AML")
-phrase_list.addPhrase("MiFID")
-phrase_list.addPhrase("ESG")
-phrase_list.addPhrase("Sharpe ratio")
+
+```csharp
+var phraseList = PhraseListGrammar.FromRecognizer(recognizer);
+foreach (var phrase in new[]
+{
+    "EBITDA", "VaR", "alpha generation", "basis points", "rebalancing",
+    "KYC", "AML", "MiFID", "ESG", "Sharpe ratio"
+})
+{
+    phraseList.AddPhrase(phrase);
+}
 ```
 
 ---
@@ -223,75 +224,52 @@ phrase_list.addPhrase("Sharpe ratio")
 
 Financial platforms have a lower tolerance for harmful content given the regulatory environment.
 
-```python
-async def run_financial_content_safety(
-    text: str,
-    context: str = "advisory",  # "advisory" | "research" | "client_input"
-) -> dict:
-    """
-    Check text against content safety thresholds appropriate for financial context.
-    Returns dict with `safe: bool` and `flags: list`.
-    """
-    client = ContentSafetyClient(
-        endpoint=settings.content_safety_endpoint,
-        credential=DefaultAzureCredential(),
-    )
-    async with client:
-        request = AnalyzeTextOptions(text=text)
-        response = await client.analyze_text(request)
+```csharp
+public async Task<ContentSafetyResult> CheckAsync(
+    string text, string context, CancellationToken ct) // context: "advisory" | "research" | "client_input"
+{
+    var client = new ContentSafetyClient(
+        new Uri(_options.ContentSafetyEndpoint), new DefaultAzureCredential());
 
-        flags = []
-        for item in response.categories_analysis:
-            # Financial platforms: flag severity >= 2 (not just >= 4)
-            if item.severity and item.severity >= 2:
-                flags.append({"category": item.category.value, "severity": item.severity})
+    AnalyzeTextResult result = await client.AnalyzeTextAsync(new AnalyzeTextOptions(text), ct);
 
-        return {
-            "safe": len(flags) == 0,
-            "flags": flags,
-            "text_length": len(text),
-            "context": context,
-        }
+    // Financial platforms: flag severity >= 2 (not just >= 4)
+    var flags = result.CategoriesAnalysis
+        .Where(c => c.Severity >= 2)
+        .Select(c => new SafetyFlag(c.Category.ToString(), c.Severity ?? 0))
+        .ToList();
+
+    return new ContentSafetyResult(Safe: flags.Count == 0, Flags: flags, Context: context);
+}
 ```
 
 ---
 
 ## Azure Monitor — Financial Audit Telemetry
 
-All financial platform metrics should be captured as custom events in Application Insights.
+Capture financial platform events as custom events/metrics. Never include PII values — only
+IDs and operation metadata.
 
-```python
-from applicationinsights import TelemetryClient
+```csharp
+public sealed class FinancialEventLogger(TelemetryClient telemetry)
+{
+    public void LogFinancialEvent(
+        string eventName, string advisorId, string clientId, string sessionId,
+        IReadOnlyDictionary<string, object> metadata)
+    {
+        var props = new Dictionary<string, string>
+        {
+            ["advisorId"] = advisorId,
+            ["clientId"] = clientId,
+            ["sessionId"] = sessionId,
+        };
+        foreach (var (k, v) in metadata) props[k] = v.ToString() ?? string.Empty;
 
-tc = TelemetryClient(settings.appinsights_instrumentation_key)
+        telemetry.TrackEvent(eventName, props);
+    }
+}
 
-def log_financial_event(
-    event_name: str,
-    advisor_id: str,
-    client_id: str,
-    session_id: str,
-    metadata: dict,
-) -> None:
-    """Log a financial operation event to Application Insights."""
-    # Never include PII values — only IDs and operation metadata
-    tc.track_event(
-        event_name,
-        properties={
-            "advisor_id": advisor_id,
-            "client_id": client_id,
-            "session_id": session_id,
-            "environment": settings.environment,
-            **{k: str(v) for k, v in metadata.items()},
-        },
-    )
-    tc.flush()
-
-# Usage:
-log_financial_event(
-    "recommendation_approved",
-    advisor_id="adv_001",
-    client_id="cli_001",
-    session_id="sess_001",
-    metadata={"recommendation_count": 3, "gate": "GATE-1"},
-)
+// Usage:
+// logger.LogFinancialEvent("recommendation_approved", "adv_001", "cli_001", "sess_001",
+//     new Dictionary<string, object> { ["recommendationCount"] = 3, ["gate"] = "GATE-1" });
 ```

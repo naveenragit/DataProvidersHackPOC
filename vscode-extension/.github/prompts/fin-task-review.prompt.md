@@ -10,17 +10,17 @@ Validate the completed implementation against research, plan, and financial doma
 ## Review Checklist
 
 ### Code Quality
-- [ ] Python code uses `async`/`await` for all I/O operations
-- [ ] Pydantic v2 models with proper validation
-- [ ] `pydantic-settings` used for all configuration (no raw `os.getenv`)
+- [ ] C# code uses `async`/`await` with `CancellationToken` for all I/O operations
+- [ ] DTO records with validation attributes (model binding, not manual checks)
+- [ ] `IOptions<T>` used for all configuration (no raw env/`IConfiguration` in business logic)
 - [ ] No hardcoded credentials, endpoints, or secrets
-- [ ] Proper error handling with structured error responses
+- [ ] Proper error handling with `ProblemDetails` responses
 
 ### Azure Services
 - [ ] `DefaultAzureCredential` used (not hardcoded keys)
-- [ ] Async SDK clients used correctly
+- [ ] Azure SDK clients registered as singletons and used correctly
 - [ ] Cosmos DB partition keys align with access patterns
-- [ ] OpenTelemetry spans on all agent and external service calls
+- [ ] OpenTelemetry activities/spans on all agent and external service calls
 
 ### Financial Domain
 - [ ] Financial terminology used consistently in naming
@@ -37,11 +37,12 @@ Validate the completed implementation against research, plan, and financial doma
 - [ ] Sensitive data not logged
 
 ### Frontend
-- [ ] Dark theme colors applied consistently (`bg-slate-900`, `bg-slate-800`, `border-slate-700`)
+- [ ] shadcn CSS-variable tokens applied consistently (`bg-background`, `bg-card`, `border-border`, `text-muted-foreground`)
+- [ ] UI built from shadcn/ui primitives; server state via TanStack Query (no `useEffect` fetching)
 - [ ] `lucide-react` icons used
 - [ ] TypeScript strict mode — no `any` types
 - [ ] Financial data formatted correctly (currency, percentages, compact numbers)
-- [ ] Error states handled in UI
+- [ ] `isPending` / `isError` states handled in UI
 
 ### Workflow Visualization
 - [ ] `WorkflowPage.tsx` updated with new nodes for this feature

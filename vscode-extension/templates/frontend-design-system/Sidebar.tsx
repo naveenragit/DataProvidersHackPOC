@@ -1,16 +1,10 @@
 // Copy to frontend/src/components/layout/Sidebar.tsx
-// Professional dark sidebar matching the design system (w-60, bg-surface-100).
-// Feature group is app-specific; Architecture and Settings groups are REQUIRED.
+// Professional dark sidebar (w-60). Feature group is app-specific; the Architecture and
+// Settings groups are REQUIRED in every app. Styled with shadcn tokens + the cn() helper.
 import { NavLink } from 'react-router-dom'
 import type { LucideIcon } from 'lucide-react'
-import {
-  LayoutDashboard,
-  GitBranch,
-  Network,
-  Settings,
-  ChevronRight,
-} from 'lucide-react'
-import clsx from 'clsx'
+import { LayoutDashboard, GitBranch, Network, Settings, ChevronRight } from 'lucide-react'
+import { cn } from '@/lib/utils'
 
 interface NavItem {
   to: string
@@ -27,9 +21,7 @@ interface NavGroup {
 const NAV_GROUPS: NavGroup[] = [
   {
     label: 'Workspace',
-    items: [
-      { to: '/', icon: LayoutDashboard, label: 'New Assessment' },
-    ],
+    items: [{ to: '/', icon: LayoutDashboard, label: 'Dashboard' }],
   },
   {
     label: 'Architecture',
@@ -40,32 +32,30 @@ const NAV_GROUPS: NavGroup[] = [
   },
   {
     label: 'Settings',
-    items: [
-      { to: '/settings', icon: Settings, label: 'Settings' },
-    ],
+    items: [{ to: '/settings', icon: Settings, label: 'Settings' }],
   },
 ]
 
-export default function Sidebar() {
+export function Sidebar() {
   return (
-    <aside className="flex flex-col w-60 min-h-screen bg-surface-100 border-r border-border shrink-0">
+    <aside className="flex w-60 min-h-screen shrink-0 flex-col border-r border-border bg-card">
       {/* Brand */}
-      <div className="flex items-center gap-3 px-5 h-16 border-b border-border">
-        <div className="w-8 h-8 rounded-lg bg-accent flex items-center justify-center text-white font-bold text-sm">
+      <div className="flex h-16 items-center gap-3 border-b border-border px-5">
+        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-sm font-bold text-primary-foreground">
           F
         </div>
         <div>
-          <div className="text-sm font-semibold text-gray-100">Financial AI</div>
-          <div className="text-[10px] text-gray-500 uppercase tracking-wider">Platform</div>
+          <div className="text-sm font-semibold text-foreground">Financial AI</div>
+          <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Platform</div>
         </div>
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 py-3 px-3 overflow-y-auto space-y-1">
+      <nav className="flex-1 space-y-1 overflow-y-auto px-3 py-3">
         {NAV_GROUPS.map((group) => (
           <div key={group.label} className="pt-3">
             <div className="px-3 pb-1.5">
-              <span className="text-[9px] font-bold uppercase tracking-widest text-gray-600">
+              <span className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground/70">
                 {group.label}
               </span>
             </div>
@@ -76,11 +66,11 @@ export default function Sidebar() {
                   to={to}
                   end={to === '/'}
                   className={({ isActive }) =>
-                    clsx(
-                      'flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors group',
+                    cn(
+                      'group flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors',
                       isActive
-                        ? 'bg-accent/20 text-accent-hover'
-                        : 'text-gray-400 hover:text-gray-100 hover:bg-surface-50',
+                        ? 'bg-primary/15 text-primary'
+                        : 'text-muted-foreground hover:bg-muted hover:text-foreground',
                     )
                   }
                 >
@@ -88,12 +78,10 @@ export default function Sidebar() {
                     <>
                       <Icon
                         size={16}
-                        className={clsx(
-                          isActive ? 'text-accent-hover' : 'text-gray-500 group-hover:text-gray-300',
-                        )}
+                        className={cn(isActive ? 'text-primary' : 'text-muted-foreground group-hover:text-foreground')}
                       />
                       <span className="flex-1">{label}</span>
-                      {isActive && <ChevronRight size={12} className="text-accent" />}
+                      {isActive && <ChevronRight size={12} className="text-primary" />}
                     </>
                   )}
                 </NavLink>

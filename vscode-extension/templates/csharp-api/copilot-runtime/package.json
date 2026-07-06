@@ -1,0 +1,21 @@
+{
+  "name": "copilot-runtime",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "CopilotKit Node runtime sidecar that proxies to the C# API and Azure OpenAI.",
+  "scripts": {
+    "dev": "tsx watch server.ts",
+    "start": "tsx server.ts"
+  },
+  "dependencies": {
+    "@copilotkit/runtime": "^1.5.0",
+    "openai": "^4.67.0",
+    "express": "^4.19.2"
+  },
+  "devDependencies": {
+    "tsx": "^4.19.0",
+    "@types/express": "^4.17.21",
+    "typescript": "^5.5.0"
+  }
+}
