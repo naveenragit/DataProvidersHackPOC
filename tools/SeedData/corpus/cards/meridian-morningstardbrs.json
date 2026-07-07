@@ -1,0 +1,19 @@
+{
+  "id": "meridian-morningstardbrs",
+  "docType": "ratingCard",
+  "issuerId": "meridian",
+  "provider": "MorningstarDbrs",
+  "letter": "BB (high)",
+  "notch": 11,
+  "dataClass": "synthetic",
+  "asOfDate": "2025-11-13T00:00:00Z",
+  "inputAsOfDate": "2025-09-30T00:00:00Z",
+  "factors": [
+    { "name": "Leverage", "weight": 0.35, "score": 51, "sourceRef": "meridian-fin-q3" },
+    { "name": "InterestCoverage", "weight": 0.25, "score": 49, "sourceRef": "meridian-fin-q3" },
+    { "name": "BusinessRisk", "weight": 0.20, "score": 48, "sourceRef": "morningstardbrs-methodology" },
+    { "name": "SectorTreatment", "weight": 0.20, "score": 47, "sourceRef": "morningstardbrs-methodology" }
+  ],
+  "content": "Illustrative Morningstar DBRS-style issuer credit assessment for Meridian Freight, dated 2025-11-13 on Q3 fundamentals as of 2025-09-30. A marginally more conservative read of the same leverage and coverage inputs places Meridian at BB (high), the top high-yield notch. The gap to the other anchor is a single notch, but because it straddles the investment-grade / high-yield boundary it changes the issuer's eligibility bucket.",
+  "disclaimer": "Synthetic, illustrative — not Morningstar DBRS data."
+}

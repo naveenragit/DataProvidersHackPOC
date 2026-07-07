@@ -1,5 +1,12 @@
+using Azure.Core;
+using Azure.Identity;
+using Azure.Search.Documents;
+using FinancialServices.Api.Analysis;
 using FinancialServices.Api.Connectors;
+using FinancialServices.Api.Infrastructure.Errors;
 using FinancialServices.Api.Infrastructure.Http;
+using FinancialServices.Api.Services;
+using Microsoft.Azure.Cosmos;
 using Microsoft.Extensions.Options;
 
 namespace FinancialServices.Api.Infrastructure;
@@ -51,6 +58,74 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<IProviderRatingsSource, SyntheticRatingsSource>();
         services.AddSingleton<IProviderRatingsSource, MoodysRatingsClient>();
         services.AddSingleton<IProviderRatingsSource, MorningstarDbrsRatingsClient>();
+
+        return services;
+    }
+
+    /// <summary>
+    /// Binds section <c>Azure</c> to <see cref="AzureOptions"/> (Cosmos + Search endpoints). Not gated
+    /// with <c>ValidateOnStart</c> — <c>/api/health</c> and the unit-test host boot without Azure; the
+    /// clients below fail loud at first use.
+    /// </summary>
+    public static IServiceCollection AddAzureOptions(this IServiceCollection services, IConfiguration configuration)
+    {
+        services.AddOptions<AzureOptions>()
+            .Bind(configuration.GetSection("Azure"));
+        return services;
+    }
+
+    /// <summary>
+    /// Registers the real Azure data plane (P1/P6): a shared managed-identity credential
+    /// (<see cref="DefaultAzureCredential"/> — no keys), the Cosmos client (camelCase + enum-as-string
+    /// serializer so <c>id</c>/<c>issuerId</c>/Provider round-trip), the AI Search client bound to the
+    /// ratings index, the stateless deterministic engines, and the reconciliation/audit/corpus services.
+    /// The Cosmos + Search factories throw <see cref="ConfigurationException"/> (naming the setting)
+    /// when resolved without configuration — never a fabricated endpoint.
+    /// </summary>
+    public static IServiceCollection AddPrismDataServices(this IServiceCollection services)
+    {
+        services.AddSingleton<TokenCredential>(_ => new DefaultAzureCredential());
+
+        services.AddSingleton(serviceProvider =>
+        {
+            AzureOptions options = serviceProvider.GetRequiredService<IOptions<AzureOptions>>().Value;
+            if (string.IsNullOrWhiteSpace(options.CosmosEndpoint))
+            {
+                throw new ConfigurationException("Azure:CosmosEndpoint", "Cosmos DB endpoint is not configured.");
+            }
+
+            return new CosmosClient(
+                options.CosmosEndpoint,
+                serviceProvider.GetRequiredService<TokenCredential>(),
+                new CosmosClientOptions
+                {
+                    ApplicationName = "prism-api",
+                    UseSystemTextJsonSerializerWithOptions = PrismJson.Options,
+                });
+        });
+
+        services.AddSingleton(serviceProvider =>
+        {
+            AzureOptions options = serviceProvider.GetRequiredService<IOptions<AzureOptions>>().Value;
+            if (string.IsNullOrWhiteSpace(options.SearchEndpoint))
+            {
+                throw new ConfigurationException("Azure:SearchEndpoint", "AI Search endpoint is not configured.");
+            }
+
+            return new SearchClient(
+                new Uri(options.SearchEndpoint),
+                options.SearchIndex,
+                serviceProvider.GetRequiredService<TokenCredential>());
+        });
+
+        // Deterministic engines (stateless, P2) + wall clock (testable) + data/orchestration services.
+        services.AddSingleton<DivergenceDecomposer>();
+        services.AddSingleton<RedFlagEngine>();
+        services.AddSingleton<TimeProvider>(TimeProvider.System);
+        services.AddSingleton<ISearchCorpus, SearchCorpus>();
+        services.AddSingleton<ICosmosDossierStore, CosmosDossierStore>();
+        services.AddSingleton<IAuditService, AuditService>();
+        services.AddSingleton<IReconciliationService, ReconciliationService>();
 
         return services;
     }

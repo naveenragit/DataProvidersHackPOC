@@ -115,6 +115,31 @@ it implements, adversarially reviews, and corrects the work. Newest first.
 - **Residual risks:** {none | …}
 -->
 
+### 10 — Prism UI & Workflow Visualization · 2026-07-06
+- **Status:** done (deterministic dossier UI live against the pkg-08 API; pkg-07 copilot/AG-UI narration deferred as honest placeholders)
+- **Files:** `frontend/src/` — `types/prism.ts` re-synced to live DTOs, `lib/prismFormat.ts` (+test), `components/prism/*` (ProviderVerdictCard, DivergenceBoard, DecompositionWaterfall, RedFlagBanner, RedFlagPanel, RuleModal, DossierPanel, ScopeNotice), rebuilt `pages/ReconciliationPage.tsx`, enriched `components/workflow/workflowData.ts`, `pages/__tests__/ReconciliationPage.test.tsx`. See `.copilot-tracking/plans/2026-07-06/10-plan.md`.
+- **Adversarial review:** not run — the orchestrator sub-agent stopped after implementation (no `10-review.md`/`10-changes.md`). Verified **functionally + live in-browser** instead (issuer list → NordStar reconcile → STALE banner + verdict board + residual-dominance framing + red-flag panel all render from real Azure). **Follow-up:** run the adversary/reviewer phases.
+- **Fixes applied post-implementation:** (1) `prismFormat.test.ts` fixtures used invalid `RedFlagCode` strings → real codes; (2) added `ResizeObserver` stub to `src/test/setup.ts` (recharts needs it in jsdom); (3) **StrictMode bug** — auto-run POST was a mutation fired from `useEffect`; React 18 double-mount stranded `isPending` → converted to a `useQuery` (cache-backed, StrictMode-safe); (4) gated the CopilotKit provider to mount only when `VITE_COPILOT_URL` is set (no dead `/copilotkit` hammering).
+- **Build/tests:** `npm run build` ✅ strict tsc + vite · `npm run test` ✅ 36 passing.
+- **Residual risks:** pkg-07 copilot narration + AG-UI streaming + workflow animation deferred (honest placeholders); adversarial review pending.
+
+### 08 — API & Persistence · 2026-07-06
+- **Status:** done — **all 5 acceptance criteria pass live against real Azure**
+- **Files:** `Controllers/` (Issuers, Reconciliations), `Services/` (IReconciliationService + impl, SearchCorpus + mapper, DossierAssembler, DossierHtmlRenderer, CosmosDossierStore, AuditService), `Models/` (PrismDtos, PrismDtoMappings, AuditEvent), `Infrastructure/` (AzureOptions, PrismJson [`JsonStringEnumConverter`], PrismExceptionHandler, Errors/{NotFound,Validation}), Program.cs + ServiceCollectionExtensions. See `.copilot-tracking/plans/2026-07-06/08-plan.md`.
+- **Live acceptance:** `GET /api/v1/issuers` → 6 issuers from Search; `POST /api/v1/reconciliations` (NordStar) → dossier persisted to Cosmos **with the STALE_INPUT flag**; `GET /api/v1/reconciliations/{id}` round-trips; `audit_events` written; error envelope `{error:{code,message,details}}`.
+- **Adversarial review:** not run — orchestrator sub-agent stopped after implementation (no `08-review.md`/`08-changes.md`); verified live instead. **Follow-up:** run adversary/reviewer.
+- **Fixes applied post-implementation:** missing `using` in a test; explicit `Newtonsoft.Json 13.0.3` package ref (Cosmos SDK transitive dep wasn't copied → runtime `FileNotFoundException`); `[property: Required]` → `[Required]` on the positional-record request DTO.
+- **Build/tests:** `dotnet build -warnaserror` ✅ 0 warnings · `dotnet test` ✅ 163 passing (142 API + 21 SeedData).
+- **Residual risks:** pkg-06 narrators not wired (dossier `narrative` empty — deterministic `rule` text is authoritative); adversarial review pending.
+
+### 03 — Synthetic Data & AI Search Index · 2026-07-06
+- **Status:** done — corpus authored + **live `prism-ratings` index seeded and verified**
+- **Files:** `tools/SeedData/` (console seeder + 30 labeled-synthetic corpus docs: 6 issuers, 17 rating cards, 3 methodology, 4 reference) + `tools/SeedData.Tests/` (21 tests). See `.copilot-tracking/{plans,changes,reviews}/2026-07-06/03-*`.
+- **Adversarial review:** `.copilot-tracking/reviews/2026-07-06/03-review.md` — no Critical; 1 High (client-side embedding for the acceptance query) + 3 Medium + 3 Low — **all resolved**.
+- **Live gate cleared:** deployed `text-embedding-3-small` on the Foundry account, then `seed` + `--verify` — index config OK (18 fields, vectorizer, semantic), 30 docs, hybrid "NordStar leverage" → `nordstar-msci`, Cedar Grove consensus.
+- **Build/tests:** `dotnet build -warnaserror` ✅ 0 warnings · `dotnet test` ✅ 144 passing (123 + 21 new).
+- **Residual risks:** real-EDGAR issuer anchoring (fictional issuers, labeled synthetic) → pkg 04/12; runtime integrated vectorization would need the Search MI to hold *Cognitive Services OpenAI User*.
+
 ### 09 — Frontend Shell & Navigation · 2026-07-06
 - **Status:** done (scaffolds the whole `frontend/` Vite app)
 - **Files:** ~44 net-new under `frontend/` — pinned `package.json` (React 18.3, Vite 5, TanStack Q/T v5/v8, CopilotKit 1.4.8, Tailwind 3, react-router 6.30.4), hand-authored `components/ui/*` shadcn primitives, `components/layout/*` (Prism-branded), `components/workflow/*`, `pages/*`, `hooks/{useIssuers,useReconciliation}`, `lib/{apiClient,settings,utils,queryClient}`, `types/prism.ts`, `ErrorBoundary`. See `.copilot-tracking/changes/2026-07-06/09-changes.md`.

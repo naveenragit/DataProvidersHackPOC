@@ -1,0 +1,20 @@
+{
+  "id": "issuer-cedargrove",
+  "docType": "issuer",
+  "issuerId": "cedargrove",
+  "provider": "",
+  "letter": "",
+  "notch": 0,
+  "dataClass": "synthetic",
+  "legalName": "Cedar Grove Foods Ltd.",
+  "ticker": "CDGF",
+  "cik": "0000000003",
+  "sector": "Consumer Staples",
+  "sampleBondIsin": "US0000CDGF33",
+  "latestFilingDate": "2025-10-28T00:00:00Z",
+  "filingType": "10-Q",
+  "asOfDate": "2025-10-28T00:00:00Z",
+  "inputAsOfDate": "2025-09-30T00:00:00Z",
+  "content": "Cedar Grove Foods Ltd. is a synthetic, illustrative consumer-staples issuer. All three providers rate Cedar Grove on the same recent Q3 fundamentals filed 2025-10-28 and land on the same notch, giving a spread of zero. Cedar Grove is the consensus control: a well-behaved issuer where reconciliation must find no divergence and raise no red flags. It exists to prove the system exonerates agreement rather than manufacturing conflict.",
+  "disclaimer": "Synthetic, illustrative issuer — fictional entity, not a real SEC filer."
+}

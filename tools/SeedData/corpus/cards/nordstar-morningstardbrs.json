@@ -1,0 +1,19 @@
+{
+  "id": "nordstar-morningstardbrs",
+  "docType": "ratingCard",
+  "issuerId": "nordstar",
+  "provider": "MorningstarDbrs",
+  "letter": "BBB (mid)",
+  "notch": 9,
+  "dataClass": "synthetic",
+  "asOfDate": "2025-11-14T00:00:00Z",
+  "inputAsOfDate": "2025-09-30T00:00:00Z",
+  "factors": [
+    { "name": "Leverage", "weight": 0.35, "score": 61, "sourceRef": "nordstar-fin-q3" },
+    { "name": "InterestCoverage", "weight": 0.20, "score": 64, "sourceRef": "nordstar-fin-q3" },
+    { "name": "BusinessRisk", "weight": 0.25, "score": 60, "sourceRef": "morningstardbrs-methodology" },
+    { "name": "SectorTreatment", "weight": 0.20, "score": 57, "sourceRef": "morningstardbrs-methodology" }
+  ],
+  "content": "Illustrative Morningstar DBRS-style issuer credit assessment for NordStar Industrials, dated 2025-11-14 on the issuer's Q3 fundamentals as of 2025-09-30. Like the Moody's anchor, this assessment incorporates NordStar's Q3 deleveraging and lands at BBB (mid), equivalent to the Baa2 notch. The leverage input matches the fresher post-filing data, so both anchor providers agree; only the stale MSCI view diverges.",
+  "disclaimer": "Synthetic, illustrative — not Morningstar DBRS data."
+}

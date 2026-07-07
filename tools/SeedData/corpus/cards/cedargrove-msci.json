@@ -1,0 +1,18 @@
+{
+  "id": "cedargrove-msci",
+  "docType": "ratingCard",
+  "issuerId": "cedargrove",
+  "provider": "Msci",
+  "letter": "A",
+  "notch": 6,
+  "dataClass": "synthetic",
+  "asOfDate": "2025-11-01T00:00:00Z",
+  "inputAsOfDate": "2025-09-30T00:00:00Z",
+  "factors": [
+    { "name": "Leverage", "weight": 0.40, "score": 73, "sourceRef": "cedargrove-fin-q3" },
+    { "name": "InterestCoverage", "weight": 0.30, "score": 75, "sourceRef": "cedargrove-fin-q3" },
+    { "name": "SectorEsgOverlay", "weight": 0.30, "score": 70, "sourceRef": "msci-methodology" }
+  ],
+  "content": "Illustrative MSCI-style issuer credit assessment for Cedar Grove Foods, dated 2025-11-01 on Q3 fundamentals as of 2025-09-30. The assessment agrees with both anchors at the A notch on the same fresh inputs. All three providers land within a zero-notch spread, making Cedar Grove the clean consensus case.",
+  "disclaimer": "Synthetic, illustrative — not MSCI data."
+}

@@ -1,0 +1,19 @@
+{
+  "id": "asterbio-moodys",
+  "docType": "ratingCard",
+  "issuerId": "asterbio",
+  "provider": "Moodys",
+  "letter": "Ba2",
+  "notch": 12,
+  "dataClass": "synthetic",
+  "asOfDate": "2025-11-13T00:00:00Z",
+  "inputAsOfDate": "2025-09-30T00:00:00Z",
+  "factors": [
+    { "name": "Leverage", "weight": 0.35, "score": 42, "sourceRef": "asterbio-fin-q3" },
+    { "name": "InterestCoverage", "weight": 0.25, "score": 40, "sourceRef": "asterbio-fin-q3" },
+    { "name": "BusinessRisk", "weight": 0.20, "score": 44, "sourceRef": "moodys-methodology" },
+    { "name": "FinancialPolicy", "weight": 0.20, "score": 41, "sourceRef": "moodys-methodology" }
+  ],
+  "content": "Illustrative Moody's-style issuer credit assessment for Aster Bio Therapeutics, dated 2025-11-13 on Q3 fundamentals as of 2025-09-30. High leverage and modest coverage support a Ba2 assessment. Aster Bio has thin coverage: only two providers assess it, so this view is one of just two independent opinions available for reconciliation.",
+  "disclaimer": "Synthetic, illustrative — not Moody's data."
+}

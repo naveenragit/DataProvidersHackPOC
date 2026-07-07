@@ -1,0 +1,20 @@
+{
+  "id": "issuer-meridian",
+  "docType": "issuer",
+  "issuerId": "meridian",
+  "provider": "",
+  "letter": "",
+  "notch": 0,
+  "dataClass": "synthetic",
+  "legalName": "Meridian Freight Holdings Inc.",
+  "ticker": "MRFT",
+  "cik": "0000000004",
+  "sector": "Transportation",
+  "sampleBondIsin": "US0000MRFT44",
+  "latestFilingDate": "2025-11-08T00:00:00Z",
+  "filingType": "10-Q",
+  "asOfDate": "2025-11-08T00:00:00Z",
+  "inputAsOfDate": "2025-09-30T00:00:00Z",
+  "content": "Meridian Freight Holdings Inc. is a synthetic, illustrative transportation issuer positioned exactly on the investment-grade / high-yield boundary. One anchor provider places it at the lowest investment-grade notch (BBB-) while the other places it one notch lower, in high yield (BB+). The gap is a single notch, but it straddles the IG/HY line, so that one notch changes the issuer's eligibility bucket. Meridian is the anchor case for the fallen-angel boundary, where notch precision matters most.",
+  "disclaimer": "Synthetic, illustrative issuer — fictional entity, not a real SEC filer."
+}

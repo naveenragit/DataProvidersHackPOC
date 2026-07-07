@@ -1,0 +1,13 @@
+{
+  "id": "reference-data-quality",
+  "docType": "reference",
+  "issuerId": "",
+  "provider": "",
+  "letter": "",
+  "notch": 0,
+  "dataClass": "illustrative",
+  "asOfDate": "2025-01-01T00:00:00Z",
+  "inputAsOfDate": "2025-01-01T00:00:00Z",
+  "content": "Prism data-quality and provenance reference. Prism is a data-quality and reconciliation tool: it explains why provider assessments of the same issuer disagree, and it never fabricates a rating for a provider that does not publish one. Every provider claim traces to a source document reference, and every red flag carries evidence references. The provider cards in this corpus are clearly labeled synthetic and illustrative; they are a reproducible substrate for reconciliation and are not presented as real provider data. Real provider assessments, when available, supersede the synthetic cards while the same reconciliation logic applies unchanged.",
+  "disclaimer": "Illustrative reference for Prism data-quality and provenance principles."
+}

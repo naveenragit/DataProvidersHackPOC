@@ -10,9 +10,20 @@
   </PropertyGroup>
 
   <!--
-    Minimal scaffold csproj. Azure SDK packages (Microsoft.Agents.AI, Azure.AI.Projects,
-    Microsoft.Azure.Cosmos, Azure.Search.Documents, etc.) are added per work package as each
-    capability is implemented (see implementationPlan/), keeping every build green.
+    Azure SDK packages are added per work package as each capability is implemented (see
+    implementationPlan/). Package 08 adds Cosmos + AI Search + Identity (real persistence and the
+    corpus reader) and the ASP.NET Core OpenAPI document. Versions for Search/Identity match
+    tools/SeedData (one validated pin per SDK across the repo).
   -->
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Azure.Cosmos" Version="3.46.0" />
+    <!-- Cosmos 3.x has a runtime dependency on Newtonsoft.Json (DocumentClient); pin it explicitly so
+         the assembly is copied to the output (transitive copy was pruned, causing a runtime
+         FileNotFoundException on the first CosmosClient construction). -->
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+    <PackageReference Include="Azure.Search.Documents" Version="11.6.0" />
+    <PackageReference Include="Azure.Identity" Version="1.13.2" />
+    <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="9.0.0" />
+  </ItemGroup>
 
 </Project>

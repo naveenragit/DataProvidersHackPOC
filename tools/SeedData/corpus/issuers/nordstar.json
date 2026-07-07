@@ -1,0 +1,20 @@
+{
+  "id": "issuer-nordstar",
+  "docType": "issuer",
+  "issuerId": "nordstar",
+  "provider": "",
+  "letter": "",
+  "notch": 0,
+  "dataClass": "synthetic",
+  "legalName": "NordStar Industrials Inc.",
+  "ticker": "NRDS",
+  "cik": "0000000001",
+  "sector": "Industrials",
+  "sampleBondIsin": "US0000NRDS11",
+  "latestFilingDate": "2025-11-05T00:00:00Z",
+  "filingType": "10-Q",
+  "asOfDate": "2025-11-05T00:00:00Z",
+  "inputAsOfDate": "2025-09-30T00:00:00Z",
+  "content": "NordStar Industrials Inc. is a synthetic, illustrative industrials issuer used to demonstrate credit-rating reconciliation. Its Q3 10-Q, filed 2025-11-05, reports meaningful deleveraging versus the prior quarter: net debt was reduced and EBITDA recovered, lowering the Debt/EBITDA leverage ratio and improving interest coverage. This filing date is the as-of boundary that provider-input freshness is measured against: a provider whose rating action predates 2025-11-05 has not yet reflected the improved Q3 fundamentals. NordStar is the anchor case for the stale-input divergence.",
+  "disclaimer": "Synthetic, illustrative issuer — fictional entity, not a real SEC filer."
+}

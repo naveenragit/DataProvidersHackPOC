@@ -1,0 +1,13 @@
+{
+  "id": "morningstardbrs-methodology",
+  "docType": "methodology",
+  "issuerId": "",
+  "provider": "MorningstarDbrs",
+  "letter": "",
+  "notch": 0,
+  "dataClass": "illustrative",
+  "asOfDate": "2025-01-01T00:00:00Z",
+  "inputAsOfDate": "2025-01-01T00:00:00Z",
+  "content": "Illustrative Morningstar DBRS-style corporate credit methodology summary used for reconciliation narration. Core financial factors: Leverage carries a 35% weight; Interest Coverage carries 20%. Qualitative factors: Business Risk carries roughly 20% and a Sector Treatment factor carries about 20-25%. This methodology tends toward a standalone, sector-conservative view and is more reserved about parent-support uplift than some peers, which can produce a lower notch on the same fundamentals. When citing this methodology, agents may say 'per this Morningstar DBRS-style methodology, leverage weight is 35% and group-support uplift is applied conservatively.'",
+  "disclaimer": "Illustrative methodology summary — not official Morningstar DBRS methodology or ratings criteria."
+}

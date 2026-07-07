@@ -1,0 +1,31 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    tools/SeedData.Tests — offline validation of the corpus + index schema (no Azure network). Lives
+    outside backend/, so the quality gate is set here explicitly (architecturalPlan/11). Included in
+    backend/FinancialServices.slnx so `dotnet test backend/FinancialServices.slnx` covers it.
+  -->
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <IsPackable>false</IsPackable>
+    <RootNamespace>Prism.SeedData.Tests</RootNamespace>
+    <!-- Transitively references the API's Cosmos SDK (pkg 08); bypass the Newtonsoft build guard. -->
+    <AzureCosmosDisableNewtonsoftJsonCheck>true</AzureCosmosDisableNewtonsoftJsonCheck>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.12.0" />
+    <PackageReference Include="xunit" Version="2.9.2" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.8.2" />
+    <!-- 6.12.x = Apache-2.0 (free); ceiling prevents an automatic bump into commercially-licensed v8+. -->
+    <PackageReference Include="FluentAssertions" Version="[6.12.1,7.0.0)" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\SeedData\SeedData.csproj" />
+  </ItemGroup>
+
+</Project>

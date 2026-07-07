@@ -1,0 +1,18 @@
+{
+  "id": "onyx-msci",
+  "docType": "ratingCard",
+  "issuerId": "onyx",
+  "provider": "Msci",
+  "letter": "BBB-",
+  "notch": 10,
+  "dataClass": "synthetic",
+  "asOfDate": "2025-11-03T00:00:00Z",
+  "inputAsOfDate": "2025-09-30T00:00:00Z",
+  "factors": [
+    { "name": "Leverage", "weight": 0.40, "score": 55, "sourceRef": "onyx-fin-q3" },
+    { "name": "InterestCoverage", "weight": 0.30, "score": 52, "sourceRef": "onyx-fin-q3" },
+    { "name": "SectorEsgOverlay", "weight": 0.30, "score": 44, "sourceRef": "msci-methodology" }
+  ],
+  "content": "Illustrative MSCI-style issuer credit assessment for Onyx Capital Partners, dated 2025-11-03 on Q3 fundamentals as of 2025-09-30. A heavy sector overlay drives this assessment down to BBB-, four notches below the two anchor providers on the same fundamentals. This is the outlier view: reconciliation must flag how far it sits from the peer median and attribute the distance to the sector overlay rather than to leverage or coverage.",
+  "disclaimer": "Synthetic, illustrative — not MSCI data."
+}

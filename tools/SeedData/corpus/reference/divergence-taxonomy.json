@@ -1,0 +1,13 @@
+{
+  "id": "reference-divergence-taxonomy",
+  "docType": "reference",
+  "issuerId": "",
+  "provider": "",
+  "letter": "",
+  "notch": 0,
+  "dataClass": "illustrative",
+  "asOfDate": "2025-01-01T00:00:00Z",
+  "inputAsOfDate": "2025-01-01T00:00:00Z",
+  "content": "Prism divergence-taxonomy reference. The reconciliation raises four deterministic red-flag types. STALE_INPUT: a provider's input as-of date precedes the issuer's latest filing date, so its assessment predates newer fundamentals. MISSING_COVERAGE: a provider does not cover the issuer, so fewer independent opinions exist and confidence is reduced. OUTLIER_PROVIDER: one provider sits three or more notches from the peer median. METHODOLOGY_CONFLICT: two providers differ by two or more notches while resting on the same inputs, so the gap is explained by methodology rather than by data. Each flag carries evidence references to the source documents behind it.",
+  "disclaimer": "Illustrative reference for the reconciliation red-flag taxonomy."
+}

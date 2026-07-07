@@ -15,7 +15,7 @@ export const workflowTabs: WorkflowTab[] = [
     id: 'rating-reconciliation',
     label: 'Rating Reconciliation Pipeline',
     description:
-      'End-to-end reconciliation of corporate-bond credit ratings across providers: gather each provider verdict and the issuer fundamentals, decompose the notch gaps, raise deterministic red flags (stale input, missing coverage, outliers, methodology conflict), then assemble a cited dossier behind a scope-confirmation gate.',
+      'End-to-end reconciliation of corporate-bond credit ratings across providers: gather each provider verdict and the issuer fundamentals, decompose the notch gaps, raise deterministic red flags (stale input, missing coverage, outliers, methodology conflict), then assemble a cited dossier behind a scope-confirmation gate. Backed by Azure AI Search (rating corpus) and Azure Cosmos DB (dossier persistence).',
     nodes: [
       // ── Entry ────────────────────────────────────────────────────────────
       {
@@ -132,6 +132,36 @@ export const workflowTabs: WorkflowTab[] = [
         },
       },
 
+      // ── Datastore: rating corpus ────────────────────────────────────
+      {
+        id: 'azure-ai-search',
+        type: 'datastore',
+        label: 'Azure AI Search',
+        subtitle: 'datastore · rating corpus',
+        position: { x: 110, y: 410 },
+        detail: {
+          title: 'Azure AI Search',
+          subtitle: 'datastore · rating corpus',
+          description:
+            'Holds the indexed provider rating cards and methodology documents (the prism-ratings index). The provider explainer reads each verdict and its citations from here, grounding every provider claim in a retrievable source — no fabrication.',
+          sourceFiles: [
+            'backend/FinancialServices.Api/Services/SearchCorpus.cs',
+            'tools/SeedData/Search/PrismSearchIndex.cs',
+          ],
+          responsibilities: [
+            'Store labeled rating cards + methodology docs per issuer',
+            'Serve provider verdicts and citations to the explainer',
+            'Back hybrid (vector + keyword) retrieval for grounding',
+          ],
+          dataFlow: [
+            'Seeded from tools/SeedData (labeled-synthetic corpus)',
+            'Queried by SearchCorpus for an issuer\u2019s provider cards',
+            'Returns letters, notches, and source doc ids',
+          ],
+          technologies: ['Azure AI Search', 'DefaultAzureCredential'],
+        },
+      },
+
       // ── Deterministic core: decomposition ────────────────────────────────
       {
         id: 'divergence-decomposer',
@@ -242,16 +272,48 @@ export const workflowTabs: WorkflowTab[] = [
           technologies: ['Azure Cosmos DB', 'ASP.NET Core'],
         },
       },
+
+      // ── Datastore: dossier persistence ───────────────────────────
+      {
+        id: 'cosmos-db',
+        type: 'datastore',
+        label: 'Cosmos DB',
+        subtitle: 'datastore · dossier store',
+        position: { x: 310, y: 930 },
+        detail: {
+          title: 'Cosmos DB',
+          subtitle: 'datastore · dossier store',
+          description:
+            'Persists each finalized reconciliation dossier (partitioned by issuerId) and the audit events for the sweep. Point-reads return a dossier by id for retrieval and export.',
+          sourceFiles: [
+            'backend/FinancialServices.Api/Services/CosmosDossierStore.cs',
+            'backend/FinancialServices.Api/Services/AuditService.cs',
+          ],
+          responsibilities: [
+            'Persist dossiers keyed by issuerId + dossier id',
+            'Record audit events for each reconciliation (ids + counts only)',
+            'Serve point-reads for GET /reconciliations/{id}',
+          ],
+          dataFlow: [
+            'DossierResponse written on completion of the sweep',
+            'Audit event recorded (no PII)',
+            'Point-read by id returns the cited dossier',
+          ],
+          technologies: ['Azure Cosmos DB', 'DefaultAzureCredential'],
+        },
+      },
     ],
     edges: [
       { id: 'e-issuer-orch', source: 'issuer-selected', target: 'reconciliation-orchestrator' },
       { id: 'e-orch-provider', source: 'reconciliation-orchestrator', target: 'provider-explainer-agent' },
       { id: 'e-orch-fundamentals', source: 'reconciliation-orchestrator', target: 'fundamentals-agent' },
+      { id: 'e-provider-search', source: 'provider-explainer-agent', target: 'azure-ai-search', label: 'reads' },
       { id: 'e-provider-decomp', source: 'provider-explainer-agent', target: 'divergence-decomposer' },
       { id: 'e-fundamentals-decomp', source: 'fundamentals-agent', target: 'divergence-decomposer' },
       { id: 'e-decomp-redflag', source: 'divergence-decomposer', target: 'red-flag-engine' },
-      { id: 'e-redflag-gate', source: 'red-flag-engine', target: 'confirm-scope-gate' },
+      { id: 'e-redflag-gate', source: 'red-flag-engine', target: 'confirm-scope-gate', label: 'escalation', dashed: true },
       { id: 'e-gate-dossier', source: 'confirm-scope-gate', target: 'dossier-ready' },
+      { id: 'e-dossier-cosmos', source: 'dossier-ready', target: 'cosmos-db', label: 'persists' },
     ],
   },
 ]

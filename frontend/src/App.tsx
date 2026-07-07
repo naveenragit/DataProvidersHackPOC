@@ -24,37 +24,48 @@ import WorkflowPage from '@/pages/WorkflowPage'
 import ArchitecturePage from '@/pages/ArchitecturePage'
 import SettingsPage from '@/pages/SettingsPage'
 
-// Env-aware in prod; falls back to the Vite-proxied `/copilotkit` path in dev.
-const COPILOT_RUNTIME_URL = import.meta.env.VITE_COPILOT_URL ?? '/copilotkit'
+// Only mount the CopilotKit provider when a runtime URL is explicitly configured
+// (`VITE_COPILOT_URL`). Without the Node sidecar (package 07) there is no copilot backend, and
+// mounting CopilotKit here makes it repeatedly call a dead `/copilotkit` endpoint — which saturates
+// the browser's per-host connection pool and starves the real `/api/v1` calls. Honest degradation
+// (P1): no copilot surface is shown until its runtime actually exists.
+const COPILOT_RUNTIME_URL = import.meta.env.VITE_COPILOT_URL as string | undefined
 
 export default function App() {
+  const app = (
+    <TooltipProvider delayDuration={200}>
+      <BrowserRouter>
+        <ErrorBoundary>
+          <Routes>
+            <Route element={<AppLayout />}>
+              <Route index element={<Navigate to="/issuers" replace />} />
+              <Route path="issuers" element={<IssuersPage />} />
+              <Route path="reconciliation" element={<ReconciliationPage />} />
+              <Route path="workflow" element={<WorkflowPage />} />
+              <Route path="architecture" element={<ArchitecturePage />} />
+              <Route path="settings" element={<SettingsPage />} />
+            </Route>
+          </Routes>
+        </ErrorBoundary>
+      </BrowserRouter>
+      {COPILOT_RUNTIME_URL ? (
+        <CopilotSidebar
+          labels={{
+            title: 'Prism Copilot',
+            initial: 'Ask about a rating divergence or red flag.',
+          }}
+        />
+      ) : null}
+    </TooltipProvider>
+  )
+
   return (
     <QueryClientProvider client={queryClient}>
-      <CopilotKit runtimeUrl={COPILOT_RUNTIME_URL}>
-        {/* Radix tooltips throw without a provider ancestor — mount one once, here. */}
-        <TooltipProvider delayDuration={200}>
-          <BrowserRouter>
-            <ErrorBoundary>
-              <Routes>
-                <Route element={<AppLayout />}>
-                  <Route index element={<Navigate to="/issuers" replace />} />
-                  <Route path="issuers" element={<IssuersPage />} />
-                  <Route path="reconciliation" element={<ReconciliationPage />} />
-                  <Route path="workflow" element={<WorkflowPage />} />
-                  <Route path="architecture" element={<ArchitecturePage />} />
-                  <Route path="settings" element={<SettingsPage />} />
-                </Route>
-              </Routes>
-            </ErrorBoundary>
-          </BrowserRouter>
-          <CopilotSidebar
-            labels={{
-              title: 'Prism Copilot',
-              initial: 'Ask about a rating divergence or red flag.',
-            }}
-          />
-        </TooltipProvider>
-      </CopilotKit>
+      {COPILOT_RUNTIME_URL ? (
+        <CopilotKit runtimeUrl={COPILOT_RUNTIME_URL}>{app}</CopilotKit>
+      ) : (
+        app
+      )}
     </QueryClientProvider>
   )
 }

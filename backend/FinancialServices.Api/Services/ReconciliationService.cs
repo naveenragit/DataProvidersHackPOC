@@ -1,0 +1,94 @@
+using FinancialServices.Api.Analysis;
+using FinancialServices.Api.Infrastructure.Errors;
+using FinancialServices.Api.Models;
+
+namespace FinancialServices.Api.Services;
+
+/// <summary>
+/// Fallback reconciliation orchestrator + Cosmos owner (spec §B). Composes the pkg-03 Search corpus,
+/// the deterministic pkg-05 engines (via <see cref="DossierAssembler"/>), Cosmos persistence and the
+/// audit trail. <b>No LLM</b> here — the pkg-06 narrators are a later, additive step; the deterministic
+/// rule text carries the demo. <see cref="CancellationToken"/> is plumbed through every call (P7).
+/// </summary>
+public sealed class ReconciliationService(
+    ISearchCorpus corpus,
+    ICosmosDossierStore store,
+    IAuditService audit,
+    DivergenceDecomposer decomposer,
+    RedFlagEngine redFlagEngine,
+    TimeProvider clock,
+    ILogger<ReconciliationService> logger) : IReconciliationService
+{
+    public async Task<IReadOnlyList<Issuer>> GetIssuersAsync(CancellationToken ct)
+    {
+        IReadOnlyList<IssuerCorpusEntry> entries = await corpus.GetIssuersAsync(ct);
+        return entries.Select(entry => entry.Issuer).ToArray();
+    }
+
+    public async Task<ReconciliationDossier> RunAsync(string issuerId, DateTimeOffset asOf, CancellationToken ct)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(issuerId);
+
+        IssuerCorpusEntry entry = await corpus.GetIssuerAsync(issuerId, ct)
+            ?? throw new NotFoundException("issuer", issuerId);
+
+        IReadOnlyList<ProviderRating> ratings = await corpus.GetProviderRatingsAsync(issuerId, asOf, ct);
+
+        // The as-of filing boundary comes from the labeled-synthetic corpus issuer doc. Real financial
+        // ratios are genuinely absent for the synthetic cast → null (P1 — never fabricated). Real-issuer
+        // EDGAR/FRED enrichment (pkg 04, already wired) is a documented seam; it is deliberately not
+        // invoked on synthetic CIKs (which 404).
+        var latest = new FundamentalSnapshot(
+            entry.Issuer.IssuerId, entry.LatestFilingDate, entry.FilingType,
+            DebtToEbitda: null, InterestCoverage: null, CashAndEquivalents: null);
+
+        DateTimeOffset now = clock.GetUtcNow();
+        string dossierId = NewPartitionedId(issuerId);
+
+        ReconciliationDossier dossier = DossierAssembler.Assemble(
+            decomposer, redFlagEngine, entry.Issuer, latest, ratings, dossierId, asOf, now);
+
+        await store.UpsertAsync(dossier, ct);
+
+        await audit.WriteAsync(
+            new AuditEvent(
+                Id: NewPartitionedId(issuerId),
+                EventType: "reconciliation",
+                Timestamp: now,
+                Actor: "system",
+                IssuerId: issuerId,
+                Action: "dossier_generated",
+                Metadata: new Dictionary<string, object>
+                {
+                    ["dossierId"] = dossierId,
+                    ["ratingCount"] = ratings.Count,
+                    ["flagCount"] = dossier.Flags.Count,
+                    ["staleFlagCount"] = dossier.Flags.Count(f => string.Equals(f.Code, "STALE_INPUT", StringComparison.Ordinal)),
+                }),
+            ct);
+
+        using (logger.BeginScope(new Dictionary<string, object> { ["issuerId"] = issuerId }))
+        {
+            // ids + counts only (P6) — never the dossier payload/financials.
+            logger.LogInformation(
+                "Reconciliation dossier {DossierId} generated: {RatingCount} ratings, {FlagCount} flags",
+                dossierId, ratings.Count, dossier.Flags.Count);
+        }
+
+        return dossier;
+    }
+
+    public Task<ReconciliationDossier?> GetAsync(string id, string issuerId, CancellationToken ct) =>
+        store.ReadAsync(id, issuerId, ct);
+
+    public Task SaveAsync(ReconciliationDossier dossier, CancellationToken ct) =>
+        store.UpsertAsync(dossier, ct);
+
+    /// <summary>
+    /// Builds an id that encodes the partition key: <c>{issuerId}:{guid}</c>. This lets
+    /// <c>GET /reconciliations/{id}</c> (which carries the id only) recover the issuerId for a Cosmos
+    /// point read. The guid keeps each run's dossier immutable (arch-08).
+    /// </summary>
+    private static string NewPartitionedId(string issuerId) =>
+        $"{issuerId}:{Guid.NewGuid():N}";
+}

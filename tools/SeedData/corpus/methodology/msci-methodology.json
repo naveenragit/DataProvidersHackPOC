@@ -1,0 +1,13 @@
+{
+  "id": "msci-methodology",
+  "docType": "methodology",
+  "issuerId": "",
+  "provider": "Msci",
+  "letter": "",
+  "notch": 0,
+  "dataClass": "illustrative",
+  "asOfDate": "2025-01-01T00:00:00Z",
+  "inputAsOfDate": "2025-01-01T00:00:00Z",
+  "content": "Illustrative MSCI-style issuer credit-analytics methodology summary used for reconciliation narration. This synthetic model weights Leverage at 40% and Interest Coverage at 30%, then applies a Sector/ESG overlay of about 30% that can move an assessment by one or more notches relative to a purely financial view. Because the overlay is heavy, this model can diverge from anchor providers even on identical fundamentals. When citing this methodology, agents may say 'per this MSCI-style model, leverage weight is 40% and a sector overlay of about 30% applies.'",
+  "disclaimer": "Illustrative methodology summary — not MSCI data or official MSCI methodology."
+}

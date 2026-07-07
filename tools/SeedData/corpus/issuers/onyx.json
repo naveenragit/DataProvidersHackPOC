@@ -1,0 +1,20 @@
+{
+  "id": "issuer-onyx",
+  "docType": "issuer",
+  "issuerId": "onyx",
+  "provider": "",
+  "letter": "",
+  "notch": 0,
+  "dataClass": "synthetic",
+  "legalName": "Onyx Capital Partners Inc.",
+  "ticker": "ONYX",
+  "cik": "0000000006",
+  "sector": "Financials",
+  "sampleBondIsin": "US0000ONYX66",
+  "latestFilingDate": "2025-10-30T00:00:00Z",
+  "filingType": "10-Q",
+  "asOfDate": "2025-10-30T00:00:00Z",
+  "inputAsOfDate": "2025-09-30T00:00:00Z",
+  "content": "Onyx Capital Partners Inc. is a synthetic, illustrative financials issuer. Two providers agree closely while a third sits several notches away from the peer median on the same fundamentals. Reconciliation must isolate the distant provider as an outlier and explain how far it is from consensus. Onyx is the anchor case for the outlier-provider pattern, where one opinion diverges sharply from its peers.",
+  "disclaimer": "Synthetic, illustrative issuer — fictional entity, not a real SEC filer."
+}

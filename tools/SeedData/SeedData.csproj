@@ -1,0 +1,41 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    tools/SeedData — Prism corpus uploader (implementationPlan/03). Console app that authors the
+    Azure AI Search index `prism-ratings`, embeds each doc's content with text-embedding-3-small
+    (1536 dims), and upserts the labeled-synthetic corpus idempotently. Lives OUTSIDE backend/, so it
+    does not inherit backend/Directory.Build.props — the quality gate (Nullable + warnings-as-errors)
+    is set explicitly here (architecturalPlan/11). It references the API project to REUSE NotchLadder
+    + Provider (P2/P8 — notch math lives in exactly one place).
+  -->
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net9.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <LangVersion>latest</LangVersion>
+    <RootNamespace>Prism.SeedData</RootNamespace>
+    <AssemblyName>SeedData</AssemblyName>
+    <InvariantGlobalization>true</InvariantGlobalization>
+    <!-- Transitively references the API's Cosmos SDK (pkg 08); bypass the Newtonsoft build guard. -->
+    <AzureCosmosDisableNewtonsoftJsonCheck>true</AzureCosmosDisableNewtonsoftJsonCheck>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Azure.Search.Documents" Version="11.6.0" />
+    <PackageReference Include="Azure.AI.OpenAI" Version="2.1.0" />
+    <PackageReference Include="Azure.Identity" Version="1.13.2" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" Version="9.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\backend\FinancialServices.Api\FinancialServices.Api.csproj" />
+  </ItemGroup>
+
+  <!-- Ship the corpus next to the assembly so it resolves via AppContext.BaseDirectory at runtime. -->
+  <ItemGroup>
+    <Content Include="corpus\**\*.json" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+</Project>

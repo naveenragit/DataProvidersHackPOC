@@ -1,0 +1,19 @@
+{
+  "id": "helios-morningstardbrs",
+  "docType": "ratingCard",
+  "issuerId": "helios",
+  "provider": "MorningstarDbrs",
+  "letter": "BBB (low)",
+  "notch": 10,
+  "dataClass": "synthetic",
+  "asOfDate": "2025-11-15T00:00:00Z",
+  "inputAsOfDate": "2025-09-30T00:00:00Z",
+  "factors": [
+    { "name": "Leverage", "weight": 0.35, "score": 69, "sourceRef": "helios-fin-q3" },
+    { "name": "InterestCoverage", "weight": 0.20, "score": 67, "sourceRef": "helios-fin-q3" },
+    { "name": "BusinessRisk", "weight": 0.20, "score": 64, "sourceRef": "morningstardbrs-methodology" },
+    { "name": "SectorTreatment", "weight": 0.25, "score": 50, "sourceRef": "morningstardbrs-methodology" }
+  ],
+  "content": "Illustrative Morningstar DBRS-style issuer credit assessment for Helios Utilities, dated 2025-11-15 on Q3 fundamentals as of 2025-09-30. This assessment takes a standalone, sector-conservative view and does not apply a parent-support uplift, landing two notches below the other anchor at BBB (low). The leverage and interest-coverage inputs are effectively identical to the peer assessment; the entire divergence is attributable to methodology treatment of group support.",
+  "disclaimer": "Synthetic, illustrative — not Morningstar DBRS data."
+}

@@ -1,4 +1,7 @@
 <Solution>
   <Project Path="FinancialServices.Api/FinancialServices.Api.csproj" />
   <Project Path="FinancialServices.Tests/FinancialServices.Tests.csproj" />
+  <!-- Package 03 corpus uploader + its offline tests (physically under tools/, outside backend/). -->
+  <Project Path="../tools/SeedData/SeedData.csproj" />
+  <Project Path="../tools/SeedData.Tests/SeedData.Tests.csproj" />
 </Solution>

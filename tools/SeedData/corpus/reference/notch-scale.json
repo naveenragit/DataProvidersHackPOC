@@ -1,0 +1,13 @@
+{
+  "id": "reference-notch-scale",
+  "docType": "reference",
+  "issuerId": "",
+  "provider": "",
+  "letter": "",
+  "notch": 0,
+  "dataClass": "illustrative",
+  "asOfDate": "2025-01-01T00:00:00Z",
+  "inputAsOfDate": "2025-01-01T00:00:00Z",
+  "content": "Prism notch-scale reference. Every provider label is mapped onto one canonical 1-to-21 integer ladder so a gap between providers is precise and reproducible: 1 = AAA/Aaa (strongest) through 21 = C (weakest); higher number means weaker credit. The investment-grade / high-yield boundary sits at BBB- (notch 10) versus BB+ (notch 11). Morningstar DBRS '(high)/(mid)/(low)' grades map one notch stronger, the bare family notch, and one notch weaker respectively. Moody's Aaa/Aa1 grades cross-walk one-to-one onto the canonical notches. A 'three-notch gap' therefore means a difference of three positions on this ladder.",
+  "disclaimer": "Illustrative reference for the reconciliation notch ladder."
+}

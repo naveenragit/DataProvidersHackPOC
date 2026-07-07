@@ -4,11 +4,10 @@
 // Wire format is camelCase (System.Text.Json default) and C# enums serialize as their
 // member NAMES (e.g. "MorningstarDbrs").
 //
-// INFERRED CONTRACT: `Models/PrismDtos.cs` is authored in package 08 (not yet built).
-// Until then these shapes are derived from architecturalPlan/09 (`DossierResponse`,
-// `ReconciliationRequest`) plus the domain records in
-// `backend/FinancialServices.Api/Models/PrismModels.cs`. When package 08 lands, re-sync
-// names/shapes here in the same change (contract-sync rule, arch-09).
+// LIVE-VERIFIED CONTRACT (package 10, 2026-07-06): these shapes were re-synced against the
+// running API on http://localhost:8000 — GET /issuers, POST/GET /reconciliations, and the
+// 404 envelope. `Models/PrismDtos.cs` (package 08) is the authoritative source; keep this
+// file in lock-step on any future contract change (contract-sync rule, arch-09).
 
 /** Rating provider — mirrors the C# `Provider` enum member names verbatim. */
 export type Provider = 'Moodys' | 'MorningstarDbrs' | 'Msci'
@@ -34,8 +33,8 @@ export interface IssuerListItem {
   cik: string
   sector: string
   sampleBondIsin: string
-  /** Providers with coverage for this issuer (provisional — may be omitted by the API). */
-  coverage?: Provider[]
+  /** Providers with coverage for this issuer. Always present (verified live vs GET /issuers). */
+  coverage: Provider[]
 }
 
 /** One provider's verdict for an issuer, with the as-of dates behind it. */

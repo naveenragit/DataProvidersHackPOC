@@ -1,0 +1,13 @@
+{
+  "id": "reference-as-of-policy",
+  "docType": "reference",
+  "issuerId": "",
+  "provider": "",
+  "letter": "",
+  "notch": 0,
+  "dataClass": "illustrative",
+  "asOfDate": "2025-01-01T00:00:00Z",
+  "inputAsOfDate": "2025-01-01T00:00:00Z",
+  "content": "Prism as-of policy reference. Reconciliation is always evaluated at an explicit as-of date, and only inputs with a timestamp at or before that date are used, with no hindsight. Each provider assessment carries two dates: the rating action date (asOfDate), when the provider last acted, and the input as-of date (inputAsOfDate), the vintage of the financials the assessment rests on. A provider whose input as-of date precedes the issuer's latest filing date has not yet reflected the newer filing; this observation-date comparison is what surfaces a stale input. This is an observation-date filter, not a point-in-time vintage claim.",
+  "disclaimer": "Illustrative reference for the reconciliation as-of policy."
+}

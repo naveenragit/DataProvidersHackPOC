@@ -1,0 +1,20 @@
+{
+  "id": "issuer-helios",
+  "docType": "issuer",
+  "issuerId": "helios",
+  "provider": "",
+  "letter": "",
+  "notch": 0,
+  "dataClass": "synthetic",
+  "legalName": "Helios Utilities Corp.",
+  "ticker": "HLUT",
+  "cik": "0000000002",
+  "sector": "Utilities",
+  "sampleBondIsin": "US0000HLUT22",
+  "latestFilingDate": "2025-11-10T00:00:00Z",
+  "filingType": "10-Q",
+  "asOfDate": "2025-11-10T00:00:00Z",
+  "inputAsOfDate": "2025-09-30T00:00:00Z",
+  "content": "Helios Utilities Corp. is a synthetic, illustrative regulated-utility issuer. It is a subsidiary within a larger utility group, so provider treatment of parent support and sector-specific adjustments differs materially. Both anchor providers rate Helios on the same Q3 fundamentals filed 2025-11-10, yet reach a two-notch gap: the divergence is driven by methodology (parent-support uplift versus a standalone, sector-conservative view), not by input freshness. Helios is the anchor case for methodology-driven divergence.",
+  "disclaimer": "Synthetic, illustrative issuer — fictional entity, not a real SEC filer."
+}

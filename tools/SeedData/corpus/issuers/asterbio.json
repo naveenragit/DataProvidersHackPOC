@@ -1,0 +1,20 @@
+{
+  "id": "issuer-asterbio",
+  "docType": "issuer",
+  "issuerId": "asterbio",
+  "provider": "",
+  "letter": "",
+  "notch": 0,
+  "dataClass": "synthetic",
+  "legalName": "Aster Bio Therapeutics Inc.",
+  "ticker": "ASTB",
+  "cik": "0000000005",
+  "sector": "Healthcare",
+  "sampleBondIsin": "US0000ASTB55",
+  "latestFilingDate": "2025-11-12T00:00:00Z",
+  "filingType": "10-Q",
+  "asOfDate": "2025-11-12T00:00:00Z",
+  "inputAsOfDate": "2025-09-30T00:00:00Z",
+  "content": "Aster Bio Therapeutics Inc. is a synthetic, illustrative healthcare issuer with thin rating coverage. Only two of the three providers rate Aster Bio; the third does not cover it at all. Reconciliation must mark the absent provider as missing coverage rather than inventing a rating, and confidence must drop because fewer independent opinions are available. Aster Bio is the anchor case for missing coverage and its effect on confidence.",
+  "disclaimer": "Synthetic, illustrative issuer — fictional entity, not a real SEC filer."
+}

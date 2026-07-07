@@ -1,0 +1,18 @@
+{
+  "id": "meridian-msci",
+  "docType": "ratingCard",
+  "issuerId": "meridian",
+  "provider": "Msci",
+  "letter": "BBB-",
+  "notch": 10,
+  "dataClass": "synthetic",
+  "asOfDate": "2025-11-14T00:00:00Z",
+  "inputAsOfDate": "2025-09-30T00:00:00Z",
+  "factors": [
+    { "name": "Leverage", "weight": 0.40, "score": 53, "sourceRef": "meridian-fin-q3" },
+    { "name": "InterestCoverage", "weight": 0.30, "score": 51, "sourceRef": "meridian-fin-q3" },
+    { "name": "SectorEsgOverlay", "weight": 0.30, "score": 49, "sourceRef": "msci-methodology" }
+  ],
+  "content": "Illustrative MSCI-style issuer credit assessment for Meridian Freight, dated 2025-11-14 on Q3 fundamentals as of 2025-09-30. This assessment agrees with the Moody's anchor at BBB-, keeping Meridian just inside investment grade. Two providers place Meridian in investment grade and one in high yield, so the reconciliation highlights a boundary-straddling divergence where a single notch matters.",
+  "disclaimer": "Synthetic, illustrative — not MSCI data."
+}

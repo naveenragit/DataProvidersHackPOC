@@ -1,0 +1,19 @@
+{
+  "id": "asterbio-morningstardbrs",
+  "docType": "ratingCard",
+  "issuerId": "asterbio",
+  "provider": "MorningstarDbrs",
+  "letter": "BB (mid)",
+  "notch": 12,
+  "dataClass": "synthetic",
+  "asOfDate": "2025-11-15T00:00:00Z",
+  "inputAsOfDate": "2025-09-30T00:00:00Z",
+  "factors": [
+    { "name": "Leverage", "weight": 0.35, "score": 41, "sourceRef": "asterbio-fin-q3" },
+    { "name": "InterestCoverage", "weight": 0.25, "score": 40, "sourceRef": "asterbio-fin-q3" },
+    { "name": "BusinessRisk", "weight": 0.20, "score": 43, "sourceRef": "morningstardbrs-methodology" },
+    { "name": "SectorTreatment", "weight": 0.20, "score": 42, "sourceRef": "morningstardbrs-methodology" }
+  ],
+  "content": "Illustrative Morningstar DBRS-style issuer credit assessment for Aster Bio Therapeutics, dated 2025-11-15 on Q3 fundamentals as of 2025-09-30. The assessment agrees with the other anchor at BB (mid), the same notch. Because the third provider does not cover Aster Bio, reconciliation must mark that coverage as missing and lower confidence accordingly rather than inferring a rating.",
+  "disclaimer": "Synthetic, illustrative — not Morningstar DBRS data."
+}

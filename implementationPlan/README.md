@@ -14,14 +14,14 @@ code skeletons, and acceptance criteria. Build them roughly in order — depende
 | 00 | [Architecture & conventions](00-architecture-and-conventions.md) | 0 | — | ✅ |
 | 01 | [Day 0 — Azure gates & scaffold](01-day0-azure-and-scaffold.md) | 0 | 00 | ◐ backend scaffold done; Azure gates pending |
 | 02 | [Domain model & notch ladder](02-domain-model-and-notch-ladder.md) | 1 | 01 | ✅ |
-| 03 | [Synthetic data & AI Search index](03-synthetic-data-and-search-index.md) | 1 | 02 | ☐ |
+| 03 | [Synthetic data & AI Search index](03-synthetic-data-and-search-index.md) | 1 | 02 | ✅ (30 labeled-synthetic docs; live `prism-ratings` index seeded + verified; 21 tests) |
 | 04 | [Real data connectors (EDGAR/FRED/Treasury)](04-real-data-connectors.md) | 1 | 02 | ◐ EDGAR/FRED + provider abstraction done (99 tests); real Moody's/DBRS HTTP pending API specs |
 | 05 | [Divergence decomposer & red-flag rules](05-divergence-decomposer-and-redflags.md) | 2 | 02, 03, 04 | ✅ (123 tests; honest residual-dominance; wiring → pkg 07/10) |
 | 06 | [Foundry agents](06-foundry-agents.md) | 2 | 03, 04 | ☐ |
 | 07 | [Orchestration, AG-UI & CopilotKit](07-orchestration-agui-and-copilotkit.md) | 2–3 | 05, 06 | ☐ |
-| 08 | [API & persistence](08-api-and-persistence.md) | 2 | 02, 05 | ☐ |
+| 08 | [API & persistence](08-api-and-persistence.md) | 2 | 02, 05 | ✅ (all 5 acceptance live: issuers from Search, NordStar STALE dossier persisted to Cosmos, round-trip, audit) |
 | 09 | [Frontend shell & navigation](09-frontend-shell.md) | 1–3 | 01 | ✅ (Vite app scaffolded; 12 tests; build green) |
-| 10 | [Prism UI & workflow visualization](10-frontend-prism-ui-and-workflow.md) | 3 | 07, 08, 09 | ☐ |
+| 10 | [Prism UI & workflow visualization](10-frontend-prism-ui-and-workflow.md) | 3 | 07, 08, 09 | ✅ (verdict board + waterfall + red-flag panel render live; 07 copilot/narration deferred as honest placeholders; 36 tests) |
 | 11 | [Deployment to Azure Container Apps](11-deployment-aca.md) | 4 | all backend | ☐ |
 | 12 | [Demo, testing & cut lines](12-demo-testing-and-cutlines.md) | 4–5 | all | ☐ |
 

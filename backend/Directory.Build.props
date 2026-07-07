@@ -10,4 +10,15 @@
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
   </PropertyGroup>
 
+  <!--
+    Prism serializes Cosmos documents with System.Text.Json (CosmosClientOptions
+    .UseSystemTextJsonSerializerWithOptions), so no direct Newtonsoft.Json dependency is taken. The
+    Cosmos SDK still uses its transitively-bundled Newtonsoft for SDK-owned types; bypass the
+    build-time "reference Newtonsoft explicitly" guard (pkg 08) rather than pull it into our code.
+    Applies to any backend project that transitively references the Cosmos SDK.
+  -->
+  <PropertyGroup>
+    <AzureCosmosDisableNewtonsoftJsonCheck>true</AzureCosmosDisableNewtonsoftJsonCheck>
+  </PropertyGroup>
+
 </Project>

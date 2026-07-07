@@ -1,0 +1,19 @@
+{
+  "id": "helios-moodys",
+  "docType": "ratingCard",
+  "issuerId": "helios",
+  "provider": "Moodys",
+  "letter": "Baa1",
+  "notch": 8,
+  "dataClass": "synthetic",
+  "asOfDate": "2025-11-13T00:00:00Z",
+  "inputAsOfDate": "2025-09-30T00:00:00Z",
+  "factors": [
+    { "name": "Leverage", "weight": 0.35, "score": 70, "sourceRef": "helios-fin-q3" },
+    { "name": "InterestCoverage", "weight": 0.20, "score": 68, "sourceRef": "helios-fin-q3" },
+    { "name": "BusinessRisk", "weight": 0.20, "score": 65, "sourceRef": "moodys-methodology" },
+    { "name": "ParentSupport", "weight": 0.25, "score": 78, "sourceRef": "moodys-methodology" }
+  ],
+  "content": "Illustrative Moody's-style issuer credit assessment for Helios Utilities, dated 2025-11-13 on Q3 fundamentals as of 2025-09-30. This assessment applies a parent-support uplift for Helios's membership in a larger utility group, lifting the standalone view by one notch to Baa1. The leverage and interest-coverage inputs match the other anchor; the higher notch is a methodology choice about group support, not a difference in fundamentals.",
+  "disclaimer": "Synthetic, illustrative — not Moody's data."
+}

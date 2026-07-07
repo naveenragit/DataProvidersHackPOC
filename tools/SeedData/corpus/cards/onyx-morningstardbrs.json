@@ -1,0 +1,19 @@
+{
+  "id": "onyx-morningstardbrs",
+  "docType": "ratingCard",
+  "issuerId": "onyx",
+  "provider": "MorningstarDbrs",
+  "letter": "A (mid)",
+  "notch": 6,
+  "dataClass": "synthetic",
+  "asOfDate": "2025-11-02T00:00:00Z",
+  "inputAsOfDate": "2025-09-30T00:00:00Z",
+  "factors": [
+    { "name": "Leverage", "weight": 0.35, "score": 71, "sourceRef": "onyx-fin-q3" },
+    { "name": "InterestCoverage", "weight": 0.25, "score": 73, "sourceRef": "onyx-fin-q3" },
+    { "name": "BusinessRisk", "weight": 0.20, "score": 70, "sourceRef": "morningstardbrs-methodology" },
+    { "name": "SectorTreatment", "weight": 0.20, "score": 69, "sourceRef": "morningstardbrs-methodology" }
+  ],
+  "content": "Illustrative Morningstar DBRS-style issuer credit assessment for Onyx Capital Partners, dated 2025-11-02 on Q3 fundamentals as of 2025-09-30. The assessment agrees with the other anchor at A (mid), the same notch. Two providers cluster tightly here; the divergence for Onyx comes entirely from a third provider that sits far below this consensus.",
+  "disclaimer": "Synthetic, illustrative — not Morningstar DBRS data."
+}

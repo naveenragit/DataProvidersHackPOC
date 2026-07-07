@@ -1,0 +1,13 @@
+{
+  "id": "moodys-methodology",
+  "docType": "methodology",
+  "issuerId": "",
+  "provider": "Moodys",
+  "letter": "",
+  "notch": 0,
+  "dataClass": "illustrative",
+  "asOfDate": "2025-01-01T00:00:00Z",
+  "inputAsOfDate": "2025-01-01T00:00:00Z",
+  "content": "Illustrative Moody's-style corporate credit methodology summary used for reconciliation narration. Core financial factors: Leverage (Debt/EBITDA) carries a 35% weight; Interest Coverage carries 20%. Qualitative factors: Business Risk carries 20-25% and Financial Policy carries roughly 20%. A distinctive adjustment is parent or group support, which may lift a standalone assessment by up to one notch when an issuer belongs to a stronger group. When citing this methodology, agents may say 'per this Moody's-style methodology, leverage weight is 35% and a parent-support uplift of up to one notch may apply.'",
+  "disclaimer": "Illustrative methodology summary — not official Moody's methodology or ratings criteria."
+}
