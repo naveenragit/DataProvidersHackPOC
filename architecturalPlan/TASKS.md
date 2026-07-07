@@ -115,6 +115,17 @@ it implements, adversarially reviews, and corrects the work. Newest first.
 - **Residual risks:** {none | …}
 -->
 
+### 13 — Live rating-provider MCP connectors (Round 1: foundation) · 2026-07-07
+- **Status:** Round 1 **done** (credential-independent foundation + Phase-0 discovery CLI). Round 2 (mappers → `ProviderRatingRecord`, Search ingestion + ARC-01 precedence, live validation) **DEFERRED** pending the operator's Phase-0 discovery run.
+- **Built:** `PrismOptions.Providers` (Morningstar/Moodys, `Enabled=false` default); `Connectors/Mcp/` — `ProviderMcpEndpointGuard` (SSRF `https`+exact-host allowlist + auth-server domain bounding), `ProviderOAuth`/`LoopbackAuthorizationHandler`/`FileTokenCache`/`TokenFreshness` (OAuth 2.1 PKCE + refresh, `offline_access`-only scope), `McpToolSession[+I+Factory]` over **`ModelContextProtocol.Core` 1.4.0**; `Errors/ReloginRequiredException`; `tools/ProviderDiscovery/` + `run-provider-discovery.bat`. Env placeholders in `.env`/`.env.example`; `.prism/` git-ignored.
+- **Guardrails held (grep-verified):** NOT wired into reconciliation / `SearchCorpus` / `DossierAssembler` / rating clients; synthetic corpus stays the default (flags off = today's behaviour); discovery CLI reuses API code (P8); deterministic core untouched (P2).
+- **Plan:** `implementationPlan/13-live-provider-mcp-connectors.md` + `.copilot-tracking/planning/2026-07-07/live-provider-mcp-integration.md` (§10 decisions, §11 synthetic-fallback guarantee).
+- **Adversarial review:** `.copilot-tracking/reviews/2026-07-07/13-round1-review-{architecture,security,stack}.md` — Security fix-first (0C/1H/4M/3L), Stack SDK-GO·version-AMBER (0C/1H/1M/3L), Architecture sound-isolation (0C/4H/5M/4L).
+  - **Fixed now:** SEC-13R1-01 (discovery report → git-ignored `.prism/discovery/` + do-not-commit banner); ARC-04 (`run-provider-discovery.bat` loads `.env`); `.gitignore` `.prism/`; SSRF-guard + token-freshness unit tests (+32).
+  - **Tracked follow-ups (Round 1.5 / Round 2):** extract a `FinancialServices.Providers` class lib so the CLI doesn't drag the whole API (STK-13-01/ARC coupling); reconnecting session provider (ARC-01); authoritative `ProviderMcpKey→Provider` map guarding Round-2 dual-source precedence (ARC-03); MCP HttpClient timeout + fail-soft `Try*` surface (ARC-02/SEC-03); token file `0600`/DPAPI (SEC-13R1-02); reject empty OAuth `state` (SEC-13R1-04); `AuthServerSelector` return `null` (STK-13-02); McpToolSession/CSRF parse tests (ARC-10).
+- **Build/tests:** `dotnet build` ✅ (0 warn, warnaserror) · `dotnet test` ✅ **220 passing** (199 API + 21 SeedData) · no regressions.
+- **Residual risks:** live behaviour unverified until the operator runs `run-provider-discovery.bat --provider morningstar|moodys` with real creds (the Phase-0 go/no-go gate); Round 2 is blocked on that result.
+
 ### 10 — Prism UI & Workflow Visualization · 2026-07-06
 - **Status:** done (deterministic dossier UI live against the pkg-08 API; pkg-07 copilot/AG-UI narration deferred as honest placeholders)
 - **Files:** `frontend/src/` — `types/prism.ts` re-synced to live DTOs, `lib/prismFormat.ts` (+test), `components/prism/*` (ProviderVerdictCard, DivergenceBoard, DecompositionWaterfall, RedFlagBanner, RedFlagPanel, RuleModal, DossierPanel, ScopeNotice), rebuilt `pages/ReconciliationPage.tsx`, enriched `components/workflow/workflowData.ts`, `pages/__tests__/ReconciliationPage.test.tsx`. See `.copilot-tracking/plans/2026-07-06/10-plan.md`.

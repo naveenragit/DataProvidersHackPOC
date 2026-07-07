@@ -1,11 +1,14 @@
 using Azure.Core;
 using Azure.Identity;
 using Azure.Search.Documents;
+using FinancialServices.Api.Agents;
 using FinancialServices.Api.Analysis;
 using FinancialServices.Api.Connectors;
 using FinancialServices.Api.Infrastructure.Errors;
 using FinancialServices.Api.Infrastructure.Http;
+using FinancialServices.Api.Orchestration;
 using FinancialServices.Api.Services;
+using Microsoft.Agents.AI.Hosting.AGUI.AspNetCore;
 using Microsoft.Azure.Cosmos;
 using Microsoft.Extensions.Options;
 
@@ -59,6 +62,20 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<IProviderRatingsSource, MoodysRatingsClient>();
         services.AddSingleton<IProviderRatingsSource, MorningstarDbrsRatingsClient>();
 
+        return services;
+    }
+
+    /// <summary>
+    /// Registers the live-provider MCP seam (pkg 13, Round 1): the SSRF-guarded
+    /// <see cref="Connectors.Mcp.McpToolSessionFactory"/> used by the discovery CLI and (Round 2) the
+    /// connectors. Purely additive — nothing on the reconciliation hot path resolves it, and every
+    /// provider flag defaults <c>Enabled=false</c>, so registering it never changes runtime behavior
+    /// (planning §11 — synthetic stays the default). The per-provider token cache is <b>not</b> a DI
+    /// singleton (its path is provider-specific); it is constructed where a provider is authenticated.
+    /// </summary>
+    public static IServiceCollection AddProviderMcp(this IServiceCollection services)
+    {
+        services.AddSingleton<Connectors.Mcp.McpToolSessionFactory>();
         return services;
     }
 
@@ -126,6 +143,49 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<ICosmosDossierStore, CosmosDossierStore>();
         services.AddSingleton<IAuditService, AuditService>();
         services.AddSingleton<IReconciliationService, ReconciliationService>();
+
+        return services;
+    }
+
+    /// <summary>
+    /// Registers the pkg-06 Foundry narration layer (P1/P2/P6): the single Agent Framework SDK seam
+    /// (<see cref="IAgentTextRunner"/> → <see cref="AzureAgentRunner"/>, inline agents over the GA
+    /// <c>Microsoft.Agents.AI[.OpenAI]</c> — no portal agents, no prerelease SDKs), the four
+    /// narrator/retriever wrappers, and the <see cref="IDossierNarrator"/> that fills the dossier's
+    /// narrative fields. All are <b>singletons</b>: they are stateless, and <see cref="ReconciliationService"/>
+    /// (a singleton) consumes <see cref="IDossierNarrator"/> — singleton dependencies avoid a captive
+    /// dependency (a deliberate, documented refinement of arch-04's "scoped", consistent with the rest of
+    /// this composition root). The runner fails loud (<see cref="ConfigurationException"/>) at first use
+    /// when <c>Azure:OpenAiEndpoint</c> is unset — never a fabricated endpoint.
+    /// </summary>
+    public static IServiceCollection AddPrismAgents(this IServiceCollection services)
+    {
+        services.AddSingleton<IAgentTextRunner, AzureAgentRunner>();
+        services.AddSingleton<ProviderExplainerAgent>();
+        services.AddSingleton<FundamentalsAgent>();
+        services.AddSingleton<RedFlagNarratorAgent>();
+        services.AddSingleton<DivergenceNarratorAgent>();
+        services.AddSingleton<IDossierNarrator, DossierNarrator>();
+
+        return services;
+    }
+
+    /// <summary>
+    /// Registers the pkg-07 orchestration layer (spec §A/§D): the shared transport-agnostic sweep steps,
+    /// the SSE streaming orchestrator (the guaranteed-green fallback transport), the live AG-UI agent
+    /// orchestrator, and the AG-UI hosting services (<c>AddAGUI</c>). All are stateless singletons. The
+    /// AG-UI endpoint itself is mapped conditionally in <c>Program.cs</c> on <c>Prism:AgUiEnabled</c>, so
+    /// registering these services never forces the prerelease hosting package to run at boot (P1).
+    /// </summary>
+    public static IServiceCollection AddPrismOrchestration(this IServiceCollection services)
+    {
+        services.AddSingleton<PrismSweepSteps>();
+        services.AddSingleton<PrismStreamingOrchestrator>();
+        services.AddSingleton<PrismAgentOrchestrator>();
+
+        // AG-UI DI services (Microsoft.Agents.AI.Hosting.AGUI.AspNetCore, prerelease). Registration is
+        // inert until MapAGUI is called; the mapping is gated on Prism:AgUiEnabled.
+        services.AddAGUI();
 
         return services;
     }

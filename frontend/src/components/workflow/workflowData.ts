@@ -58,7 +58,10 @@ export const workflowTabs: WorkflowTab[] = [
           subtitle: 'agent · orchestration',
           description:
             'Coordinates the sweep: fans out to the provider explainer and fundamentals agents, then hands their outputs to the deterministic decomposition and red-flag engines. Narrates; it never overrides the deterministic core.',
-          sourceFiles: ['backend/FinancialServices.Api/Agents/ReconciliationOrchestrator.cs'],
+          sourceFiles: [
+            'backend/FinancialServices.Api/Orchestration/PrismStreamingOrchestrator.cs',
+            'backend/FinancialServices.Api/Orchestration/PrismSweepSteps.cs',
+          ],
           responsibilities: [
             'Fan out to the provider explainer and fundamentals agents',
             'Collect provider verdicts and the issuer fundamentals snapshot',
@@ -231,7 +234,10 @@ export const workflowTabs: WorkflowTab[] = [
           subtitle: 'human gate · reconciliation only',
           description:
             'A human confirmation gate that keeps Prism in scope: the dossier explains rating divergence and provenance only. It reconciles provider views — it makes no investment decisions.',
-          sourceFiles: ['frontend/src/pages/ReconciliationPage.tsx'],
+          sourceFiles: [
+            'backend/FinancialServices.Api/Orchestration/PrismStreamingOrchestrator.cs',
+            'frontend/src/pages/ReconciliationPage.tsx',
+          ],
           responsibilities: [
             'Present the assembled divergences and flags for analyst review',
             'Confirm the output stays within reconciliation scope',

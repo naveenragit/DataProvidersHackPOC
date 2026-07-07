@@ -26,7 +26,10 @@
     <PackageReference Include="Azure.Search.Documents" Version="11.6.0" />
     <PackageReference Include="Azure.AI.OpenAI" Version="2.1.0" />
     <PackageReference Include="Azure.Identity" Version="1.13.2" />
-    <PackageReference Include="Microsoft.Extensions.Hosting" Version="9.0.0" />
+    <!-- 10.0.1 aligns with the transitive floor the API now carries via the pkg-07 AG-UI hosting
+         package (Microsoft.Agents.AI.Hosting.AGUI.AspNetCore → Microsoft.Extensions.Hosting >= 10.0.1);
+         a 9.0.0 pin here trips NU1605 (package downgrade) under warnings-as-errors. -->
+    <PackageReference Include="Microsoft.Extensions.Hosting" Version="10.0.1" />
   </ItemGroup>
 
   <ItemGroup>

@@ -20,4 +20,19 @@ public sealed class AzureOptions
 
     /// <summary>The ratings corpus index name (pkg 03). Defaults to <c>prism-ratings</c>.</summary>
     public string SearchIndex { get; init; } = "prism-ratings";
+
+    /// <summary>
+    /// Azure OpenAI (Foundry) endpoint for the pkg-06 narration agents, e.g.
+    /// <c>https://foundry-dataproviders-poc.openai.azure.com/</c> — the dedicated <c>.openai</c> host
+    /// (the <c>services.ai</c> host is not accepted by the Azure OpenAI SDK). Empty at boot; the agent
+    /// runner throws <see cref="Errors.ConfigurationException"/> at first use (P1) — never a placeholder.
+    /// </summary>
+    public string OpenAiEndpoint { get; init; } = "";
+
+    /// <summary>
+    /// Which Azure OpenAI client surface the agents use: <c>ChatCompletions</c> (default — broad
+    /// compatibility, no hosted tools; correct for the pkg-06 narrators) or <c>Responses</c> (reserved
+    /// for the pkg-07 tool-using orchestrator). Any other value falls back to Chat Completions.
+    /// </summary>
+    public string AgentApi { get; init; } = "ChatCompletions";
 }

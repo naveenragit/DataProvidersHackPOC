@@ -16,6 +16,7 @@ public sealed class ReconciliationService(
     IAuditService audit,
     DivergenceDecomposer decomposer,
     RedFlagEngine redFlagEngine,
+    IDossierNarrator narrator,
     TimeProvider clock,
     ILogger<ReconciliationService> logger) : IReconciliationService
 {
@@ -32,7 +33,13 @@ public sealed class ReconciliationService(
         IssuerCorpusEntry entry = await corpus.GetIssuerAsync(issuerId, ct)
             ?? throw new NotFoundException("issuer", issuerId);
 
-        IReadOnlyList<ProviderRating> ratings = await corpus.GetProviderRatingsAsync(issuerId, asOf, ct);
+        // Everything downstream (dossier id prefix, partition key, ratings fetch, audit) uses the
+        // corpus's CANONICAL issuer id — not the raw request value. A case/whitespace variant would
+        // otherwise split the write id from the persisted partition key and 404 the GET round-trip
+        // (adversary STK-08-01).
+        string canonicalIssuerId = entry.Issuer.IssuerId;
+
+        IReadOnlyList<ProviderRating> ratings = await corpus.GetProviderRatingsAsync(canonicalIssuerId, asOf, ct);
 
         // The as-of filing boundary comes from the labeled-synthetic corpus issuer doc. Real financial
         // ratios are genuinely absent for the synthetic cast → null (P1 — never fabricated). Real-issuer
@@ -43,20 +50,41 @@ public sealed class ReconciliationService(
             DebtToEbitda: null, InterestCoverage: null, CashAndEquivalents: null);
 
         DateTimeOffset now = clock.GetUtcNow();
-        string dossierId = NewPartitionedId(issuerId);
+        string dossierId = NewPartitionedId(canonicalIssuerId);
 
         ReconciliationDossier dossier = DossierAssembler.Assemble(
             decomposer, redFlagEngine, entry.Issuer, latest, ratings, dossierId, asOf, now);
+
+        // pkg 06 — fill the narrative fields via the Foundry narrators (best-effort). A narration fault
+        // must NOT break the reconciliation: the deterministic dossier is authoritative (P1/P2). Only a
+        // genuine cancellation propagates (P7); any other fault logs and keeps the deterministic dossier.
+        try
+        {
+            dossier = await narrator.NarrateAsync(entry.Issuer, dossier, ct);
+        }
+        catch (OperationCanceledException) when (ct.IsCancellationRequested)
+        {
+            throw;
+        }
+        catch (ConfigurationException)
+        {
+            // Misconfiguration is permanent — fail loud (P1); do not ship blank narration silently.
+            throw;
+        }
+        catch (Exception ex)
+        {
+            logger.LogWarning(ex, "Narration unavailable for {IssuerId}; returning the deterministic dossier", canonicalIssuerId);
+        }
 
         await store.UpsertAsync(dossier, ct);
 
         await audit.WriteAsync(
             new AuditEvent(
-                Id: NewPartitionedId(issuerId),
+                Id: NewPartitionedId(canonicalIssuerId),
                 EventType: "reconciliation",
                 Timestamp: now,
                 Actor: "system",
-                IssuerId: issuerId,
+                IssuerId: canonicalIssuerId,
                 Action: "dossier_generated",
                 Metadata: new Dictionary<string, object>
                 {
@@ -64,10 +92,11 @@ public sealed class ReconciliationService(
                     ["ratingCount"] = ratings.Count,
                     ["flagCount"] = dossier.Flags.Count,
                     ["staleFlagCount"] = dossier.Flags.Count(f => string.Equals(f.Code, "STALE_INPUT", StringComparison.Ordinal)),
+                    ["narratedFlagCount"] = dossier.Flags.Count(f => !string.IsNullOrEmpty(f.Narrative)),
                 }),
             ct);
 
-        using (logger.BeginScope(new Dictionary<string, object> { ["issuerId"] = issuerId }))
+        using (logger.BeginScope(new Dictionary<string, object> { ["issuerId"] = canonicalIssuerId }))
         {
             // ids + counts only (P6) — never the dossier payload/financials.
             logger.LogInformation(

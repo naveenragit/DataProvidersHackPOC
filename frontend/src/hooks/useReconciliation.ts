@@ -20,6 +20,10 @@ export function useReconciliationRun(issuerId: string | null, asOf: string) {
     staleTime: Infinity,
     retry: 0,
     refetchOnWindowFocus: false,
+    // The "run" is a non-idempotent POST, so never let a reconnect silently re-fire it (a fresh
+    // Cosmos write + ~10 gpt-5.4 calls). staleTime:Infinity already neutralises this; pin it
+    // explicitly so a future default change can't regress it (adversary STK-10-03 / ARC-10-01).
+    refetchOnReconnect: false,
   })
 }
 

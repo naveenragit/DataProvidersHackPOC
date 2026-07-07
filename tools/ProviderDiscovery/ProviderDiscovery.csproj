@@ -1,0 +1,35 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    tools/ProviderDiscovery — Phase-0 live-provider MCP discovery CLI (implementationPlan/13, Round 1).
+    Runs the ONE-TIME interactive browser login against a provider's hosted MCP server, captures the
+    refresh token into a git-ignored FileTokenCache, then calls tools/list (+ an optional sample
+    tools/call) and writes a findings note (real tool names + JSON schemas + a suggested field →
+    ProviderRatingRecord mapping template). This is the tool the operator runs to clear the Phase-0
+    go/no-go gate. It reuses the API project's SSRF guard, OAuth broker, and MCP client wrapper (P2/P8 —
+    the auth + MCP logic lives in exactly one place). Lives OUTSIDE backend/, so the quality gate is set
+    explicitly here (architecturalPlan/11). Fails loud (P1) when creds are absent.
+  -->
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net9.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <LangVersion>latest</LangVersion>
+    <RootNamespace>Prism.ProviderDiscovery</RootNamespace>
+    <AssemblyName>ProviderDiscovery</AssemblyName>
+    <InvariantGlobalization>true</InvariantGlobalization>
+    <!-- Transitively references the API's Cosmos SDK (pkg 08); bypass the Newtonsoft build guard. -->
+    <AzureCosmosDisableNewtonsoftJsonCheck>true</AzureCosmosDisableNewtonsoftJsonCheck>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.Hosting" Version="10.0.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\backend\FinancialServices.Api\FinancialServices.Api.csproj" />
+  </ItemGroup>
+
+</Project>

@@ -17,6 +17,7 @@
   -->
   <ItemGroup>
     <PackageReference Include="Microsoft.Azure.Cosmos" Version="3.46.0" />
+    <PackageReference Include="ModelContextProtocol.Core" Version="1.4.0" />
     <!-- Cosmos 3.x has a runtime dependency on Newtonsoft.Json (DocumentClient); pin it explicitly so
          the assembly is copied to the output (transitive copy was pruned, causing a runtime
          FileNotFoundException on the first CosmosClient construction). -->
@@ -24,6 +25,28 @@
     <PackageReference Include="Azure.Search.Documents" Version="11.6.0" />
     <PackageReference Include="Azure.Identity" Version="1.13.2" />
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="9.0.0" />
+  </ItemGroup>
+
+  <!--
+    Package 06 (Foundry agents) — the LLM narration layer. GA-only, inline C# agents (no portal agents,
+    no prerelease Azure.AI.Projects). Microsoft.Agents.AI[.OpenAI] 1.13.0 are the stable Agent Framework
+    releases; Azure.AI.OpenAI 2.1.0 matches the tools/SeedData pin (AzureOpenAIClient + DefaultAzureCredential).
+  -->
+  <ItemGroup>
+    <PackageReference Include="Azure.AI.OpenAI" Version="2.1.0" />
+    <PackageReference Include="Microsoft.Agents.AI" Version="1.13.0" />
+    <PackageReference Include="Microsoft.Agents.AI.OpenAI" Version="1.13.0" />
+  </ItemGroup>
+
+  <!--
+    Package 07 (Orchestration / AG-UI) — the single-agent AG-UI host (MapAGUI) + in-process function
+    tools. The ASP.NET Core hosting package is prerelease-only on nuget.org; its version line matches
+    the GA core (1.13.0). Verified to resolve via the NuGet flat-container index. AG-UI mapping is
+    config-gated (Prism:AgUiEnabled) so the guaranteed-green SSE/REST fallback (spec §D) stays the
+    default demo path if the prerelease surface regresses.
+  -->
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Agents.AI.Hosting.AGUI.AspNetCore" Version="1.13.0-preview.260703.1" />
   </ItemGroup>
 
 </Project>

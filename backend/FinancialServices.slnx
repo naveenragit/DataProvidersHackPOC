@@ -4,4 +4,6 @@
   <!-- Package 03 corpus uploader + its offline tests (physically under tools/, outside backend/). -->
   <Project Path="../tools/SeedData/SeedData.csproj" />
   <Project Path="../tools/SeedData.Tests/SeedData.Tests.csproj" />
+  <!-- Package 13 (Round 1) live-provider MCP discovery CLI (physically under tools/, outside backend/). -->
+  <Project Path="../tools/ProviderDiscovery/ProviderDiscovery.csproj" />
 </Solution>

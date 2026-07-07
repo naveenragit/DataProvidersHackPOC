@@ -17,21 +17,25 @@ public static class PrismDtoMappings
             dossier.Id,
             dossier.IssuerId,
             dossier.AsOfDate,
-            dossier.Ratings.Select(ToVerdict).ToArray(),
-            dossier.Divergences.Select(ToDivergence).ToArray(),
-            dossier.Flags.Select(ToFlag).ToArray(),
+            dossier.Ratings.Select(ToVerdictDto).ToArray(),
+            dossier.Divergences.Select(ToDivergenceDto).ToArray(),
+            dossier.Flags.Select(ToFlagDto).ToArray(),
             dossier.ConsensusSummary,
             dossier.ConfidenceScore);
 
-    private static ProviderVerdictDto ToVerdict(ProviderRating r) =>
+    /// <summary>Projects one provider rating into its verdict DTO (reused by the pkg-07 stream events).</summary>
+    public static ProviderVerdictDto ToVerdictDto(this ProviderRating r) =>
         new(r.Provider, r.Letter, r.Notch, r.AsOfDate, r.InputAsOfDate, r.MethodologyDocId);
 
-    private static PairDivergenceDto ToDivergence(PairDivergence d) =>
-        new(d.A, d.B, d.NotchGap, d.Attribution.Select(ToBucket).ToArray());
+    /// <summary>Projects one decomposed pair divergence into its DTO (reused by the pkg-07 stream events).</summary>
+    public static PairDivergenceDto ToDivergenceDto(this PairDivergence d) =>
+        new(d.A, d.B, d.NotchGap, d.Attribution.Select(ToBucketDto).ToArray());
 
-    private static BucketAttributionDto ToBucket(BucketAttribution b) =>
+    /// <summary>Projects one attribution bucket into its DTO.</summary>
+    public static BucketAttributionDto ToBucketDto(this BucketAttribution b) =>
         new(b.Bucket, b.Notches, b.Explanation, b.EvidenceRefs);
 
-    private static RedFlagDto ToFlag(RedFlag f) =>
+    /// <summary>Projects one red flag into its DTO (reused by the pkg-07 stream events).</summary>
+    public static RedFlagDto ToFlagDto(this RedFlag f) =>
         new(f.Code, f.Severity, f.Rule, f.Narrative, f.EvidenceRefs);
 }

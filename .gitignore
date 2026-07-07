@@ -36,6 +36,10 @@ appsettings.*.local.json
 .env.*
 !.env.example
 
+# Live-provider OAuth token cache (pkg 13) — refresh tokens stored in cleartext for local dev. NEVER commit.
+.prism/
+**/.prism/
+
 # .NET local/secret config — real endpoints & keys are often pasted here
 appsettings.Development.json
 appsettings.Production.json

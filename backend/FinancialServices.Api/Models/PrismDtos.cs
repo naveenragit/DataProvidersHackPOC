@@ -75,6 +75,18 @@ public sealed record ReconciliationRequest(
     [Required] DateTimeOffset? AsOf,
     IReadOnlyList<Provider>? Providers);
 
+/// <summary>
+/// Request body for <c>POST /api/v1/reconciliations/stream</c> (the pkg-07 SSE streaming sweep).
+/// <see cref="Confirmed"/> is the human-in-the-loop scope gate (P5): the sweep proceeds past the
+/// <c>scope-confirm</c> event only when the client has confirmed the scope (default <c>false</c>
+/// emits the gate and stops). Tool args are re-authorized server-side (P6).
+/// </summary>
+public sealed record ReconciliationStreamRequest(
+    [Required] string? IssuerId,
+    [Required] DateTimeOffset? AsOf,
+    bool Confirmed,
+    IReadOnlyList<Provider>? Providers);
+
 // ── Standard error envelope (arch-03) — one shape for every non-2xx response. ────────────────────
 
 /// <summary>The error payload: a stable UPPER_SNAKE <c>code</c>, human <c>message</c>, safe <c>details</c>.</summary>

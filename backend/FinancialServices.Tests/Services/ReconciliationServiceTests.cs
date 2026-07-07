@@ -25,6 +25,7 @@ public sealed class ReconciliationServiceTests
         var service = new ReconciliationService(
             PrismFakes.StandardCorpus(), store, audit,
             new DivergenceDecomposer(), new RedFlagEngine(),
+            new PassthroughDossierNarrator(),
             TimeProvider.System, NullLogger<ReconciliationService>.Instance);
         return (service, store, audit);
     }

@@ -4,7 +4,10 @@ using System.Text.Json.Serialization;
 using FinancialServices.Api.Infrastructure;
 using FinancialServices.Api.Infrastructure.Http;
 using FinancialServices.Api.Models;
+using FinancialServices.Api.Orchestration;
+using Microsoft.Agents.AI.Hosting.AGUI.AspNetCore;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Options;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -14,10 +17,13 @@ builder.Services.AddHealthChecks();
 // Cosmos + AI Search). Missing config fails loud at first use, not at boot (P1) — health stays green.
 builder.Services
     .AddPrismOptions(builder.Configuration)
-    .AddConnectors();
+    .AddConnectors()
+    .AddProviderMcp();
 builder.Services
     .AddAzureOptions(builder.Configuration)
-    .AddPrismDataServices();
+    .AddPrismDataServices()
+    .AddPrismAgents()
+    .AddPrismOrchestration();
 
 // Controllers + the JSON wire contract: camelCase (Web default) + enums as their member NAMES (the
 // cross-package DTO contract, e.g. Provider → "Msci") + reject unknown request fields (arch-09).
@@ -67,6 +73,16 @@ app.UseCors(DevCorsPolicy);
 app.MapHealthChecks("/api/health");
 app.MapGet("/", () => Results.Ok(new { service = "Prism", status = "ok" }));
 app.MapControllers();
+
+// Live AG-UI orchestrator endpoint (pkg 07 §A), consumed by the CopilotKit sidecar. Gated on
+// Prism:AgUiEnabled (default false) so the prerelease hosting package never gates a bare boot / the
+// test host (P1); the SSE stream + REST endpoints are the always-on demo path. The agent is built
+// eagerly here — it fails loud if Azure:OpenAiEndpoint is unset (P1), which is the intended contract
+// when AG-UI is explicitly enabled.
+if (app.Services.GetRequiredService<IOptions<PrismOptions>>().Value.AgUiEnabled)
+{
+    app.MapAGUI("/prism", app.Services.GetRequiredService<PrismAgentOrchestrator>().Agent);
+}
 
 if (app.Environment.IsDevelopment())
 {
