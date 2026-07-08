@@ -14,6 +14,6 @@
     { "name": "BusinessRisk", "weight": 0.20, "score": 72, "sourceRef": "moodys-methodology" },
     { "name": "FinancialPolicy", "weight": 0.20, "score": 70, "sourceRef": "moodys-methodology" }
   ],
-  "content": "Illustrative Moody's-style issuer credit assessment for Cedar Grove Foods, dated 2025-10-30 on Q3 fundamentals as of 2025-09-30. Stable leverage and strong interest coverage support an A2 assessment. This is one of three closely agreeing views on Cedar Grove; the reconciliation for this issuer should confirm consensus and raise no red flags.",
+  "content": "Illustrative Moody's-style issuer credit assessment for The Coca-Cola Company, dated 2025-10-30 on Q3 fundamentals as of 2025-09-30. Stable leverage and strong interest coverage support an A2 assessment. This is one of three closely agreeing views on Coca-Cola; the reconciliation for this issuer should confirm consensus and raise no red flags.",
   "disclaimer": "Synthetic, illustrative — not Moody's data."
 }

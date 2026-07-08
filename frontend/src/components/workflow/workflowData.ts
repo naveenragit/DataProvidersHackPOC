@@ -322,4 +322,165 @@ export const workflowTabs: WorkflowTab[] = [
       { id: 'e-dossier-cosmos', source: 'dossier-ready', target: 'cosmos-db', label: 'persists' },
     ],
   },
+  {
+    id: 'market-context',
+    label: 'Live Market Context (Morningstar)',
+    description:
+      'A CONTEXT-ONLY companion to the reconciliation: live Morningstar analyst research for a real listed security, fetched over the provider\u2019s hosted MCP server (Streamable HTTP + OAuth 2.1). Deliberately separate from the rating engine \u2014 it never feeds a notch, gap, or flag, and never expresses a buy/sell/hold view (P4). The runtime reuses the OAuth token captured by the one-time discovery-CLI login (headless refresh, no browser); fictional Prism issuers return a clean \u201Cnot covered\u201D state because Morningstar only knows listed securities.',
+    nodes: [
+      {
+        id: 'mc-request',
+        type: 'service',
+        label: 'Context Lookup',
+        subtitle: 'service · reconciliation page',
+        position: { x: 310, y: 20 },
+        detail: {
+          title: 'Context Lookup',
+          subtitle: 'service · reconciliation page',
+          description:
+            'The analyst enters a real ticker, ISIN, or company name in the live Market Context panel; TanStack Query issues a read-only GET. The panel is decoupled from the (illustrative) issuer on purpose.',
+          sourceFiles: [
+            'frontend/src/components/prism/MorningstarContextPanel.tsx',
+            'frontend/src/hooks/useMorningstarContext.ts',
+          ],
+          responsibilities: [
+            'Accept a real ticker / ISIN / company name',
+            'Issue GET /api/v1/market-context/morningstar?identifier=…',
+            'Render provider states (ok / not covered / re-login / unavailable) honestly',
+          ],
+          dataFlow: [
+            'User submits an identifier',
+            'GET /api/v1/market-context/morningstar?identifier=…',
+            'Response cached 5 min per identifier',
+          ],
+          technologies: ['React', 'TanStack Query', 'shadcn/ui'],
+        },
+      },
+      {
+        id: 'mc-api',
+        type: 'service',
+        label: 'Market Context API',
+        subtitle: 'service · MorningstarContextService',
+        position: { x: 310, y: 160 },
+        detail: {
+          title: 'Market Context API',
+          subtitle: 'service · MorningstarContextService',
+          description:
+            'Validates the identifier and orchestrates two MCP tool calls. Every failure mode (provider off, not covered, re-login, upstream error) is caught and mapped to a status \u2014 never a 5xx (P1 fail-soft). Logs ids + counts only (P6).',
+          sourceFiles: [
+            'backend/FinancialServices.Api/Controllers/MarketContextController.cs',
+            'backend/FinancialServices.Api/Services/MarketContext/MorningstarContextService.cs',
+          ],
+          responsibilities: [
+            'Validate the identifier (charset + length)',
+            'Call id-lookup, then analyst-research',
+            'Map every outcome to a renderable status (fail-soft)',
+          ],
+          dataFlow: [
+            'identifier → morningstar-id-lookup-tool → Morningstar id',
+            'id → morningstar-analyst-research-tool → research sections',
+            'MorningstarContextResponse (200 for every state)',
+          ],
+          technologies: ['ASP.NET Core', 'ModelContextProtocol.Core'],
+        },
+      },
+      {
+        id: 'mc-oauth',
+        type: 'gate',
+        label: 'Headless OAuth',
+        subtitle: 'gate · token reuse',
+        position: { x: 310, y: 300 },
+        detail: {
+          title: 'Headless OAuth',
+          subtitle: 'gate · token reuse',
+          description:
+            'Reuses the refresh token the one-time discovery-CLI login cached (git-ignored FileTokenCache + the dynamically-registered client). Refreshes silently at runtime \u2014 it never opens a browser; a missing/expired token surfaces as a ReloginRequired status rather than blocking.',
+          sourceFiles: [
+            'backend/FinancialServices.Api/Connectors/Mcp/ProviderOAuth.cs',
+            'backend/FinancialServices.Api/Connectors/Mcp/FileTokenCache.cs',
+            'backend/FinancialServices.Api/Connectors/Mcp/DcrClientStore.cs',
+          ],
+          responsibilities: [
+            'Load the cached token + dynamically-registered client',
+            'Refresh the access token headlessly (no browser at runtime)',
+            'Raise ReloginRequired when re-authentication is needed',
+          ],
+          dataFlow: [
+            'Load .prism/tokens/morningstar.json (+ .client.json)',
+            'SDK refreshes the bearer token as needed',
+            'Bearer token attached to the MCP session',
+          ],
+          technologies: ['OAuth 2.1 (PKCE + RFC 7591 DCR)', 'DefaultAzureCredential (prod seam)'],
+        },
+      },
+      {
+        id: 'mc-mcp',
+        type: 'service',
+        label: 'Morningstar MCP',
+        subtitle: 'service · hosted MCP server',
+        position: { x: 310, y: 440 },
+        detail: {
+          title: 'Morningstar MCP',
+          subtitle: 'service · hosted MCP server',
+          description:
+            'Morningstar\u2019s hosted MCP gateway (Streamable HTTP), reached only over an SSRF host allow-list. Two tools are used: id-lookup (ticker/ISIN/name → Morningstar id) and analyst-research (id → latest report). Covers listed securities only.',
+          sourceFiles: [
+            'backend/FinancialServices.Api/Connectors/Mcp/McpToolSessionFactory.cs',
+            'backend/FinancialServices.Api/Connectors/Mcp/McpToolSession.cs',
+            'backend/FinancialServices.Api/Connectors/Mcp/ProviderMcpEndpointGuard.cs',
+          ],
+          responsibilities: [
+            'Connect to https://mcp.morningstar.com/mcp (host-allowlisted, SEC-03)',
+            'tools/call morningstar-id-lookup-tool',
+            'tools/call morningstar-analyst-research-tool',
+          ],
+          dataFlow: [
+            'initialize handshake (protocol version negotiated by the SDK)',
+            'id-lookup → { morningstar_id, name, type, exchange }',
+            'analyst-research → { results: [{ title, published_at, content, url }] }',
+          ],
+          technologies: ['Model Context Protocol', 'Streamable HTTP'],
+        },
+      },
+      {
+        id: 'mc-render',
+        type: 'outcome',
+        label: 'Attributed Research',
+        subtitle: 'outcome · context panel',
+        position: { x: 310, y: 580 },
+        detail: {
+          title: 'Attributed Research',
+          subtitle: 'outcome · context panel',
+          description:
+            'The parser surfaces Morningstar\u2019s own research sections (title, date, excerpt, source link) \u2014 attributed third-party content, trimmed server-side, shown with a standing \u201Cnot investment advice\u201D label. It is never merged into Prism\u2019s reconciliation output (P4).',
+          sourceFiles: [
+            'backend/FinancialServices.Api/Services/MarketContext/MorningstarResponseParser.cs',
+            'backend/FinancialServices.Api/Models/MarketContextDtos.cs',
+            'frontend/src/components/prism/MorningstarContextPanel.tsx',
+          ],
+          responsibilities: [
+            'Parse the research sections defensively (no invented fields, P1)',
+            'Trim excerpts + cap section count (light panel, limited licensed-data surface)',
+            'Render with source links + a P4-safe disclaimer',
+          ],
+          dataFlow: [
+            'results[] → MarketContextSection[] (title, publishedAt, excerpt, url)',
+            'Rendered as attributed cards with "Read on Morningstar" links',
+          ],
+          technologies: ['System.Text.Json', 'React', 'shadcn/ui'],
+          keyFacts: [
+            'Context only — never a buy/sell/hold view (P4)',
+            'Separate from the rating reconciliation — never feeds a notch/gap/flag',
+            'Fictional Prism issuers return "not covered" (Morningstar knows listed securities only)',
+          ],
+        },
+      },
+    ],
+    edges: [
+      { id: 'e-mc-request-api', source: 'mc-request', target: 'mc-api' },
+      { id: 'e-mc-api-oauth', source: 'mc-api', target: 'mc-oauth' },
+      { id: 'e-mc-oauth-mcp', source: 'mc-oauth', target: 'mc-mcp', label: 'bearer token' },
+      { id: 'e-mc-mcp-render', source: 'mc-mcp', target: 'mc-render', label: 'sections' },
+    ],
+  },
 ]

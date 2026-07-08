@@ -158,4 +158,73 @@ public sealed class NotchLadderTests
         var act = () => NotchLadder.ToNotch(label);
         act.Should().Throw<ArgumentException>();
     }
+
+    // ── R1 — IG/HY helpers (single boundary constant) ───────────────────────────────────────────────
+
+    [Fact]
+    public void IgHy_Floor_Constant_And_IsInvestmentGrade_Agree()
+    {
+        NotchLadder.IgHyFloorNotch.Should().Be(10);
+        NotchLadder.IsInvestmentGrade(1).Should().BeTrue();
+        NotchLadder.IsInvestmentGrade(10).Should().BeTrue();   // BBB-/Baa3 = IG floor
+        NotchLadder.IsInvestmentGrade(11).Should().BeFalse();  // BB+/Ba1 = HY
+        NotchLadder.IsInvestmentGrade(21).Should().BeFalse();
+    }
+
+    // ── R2 — tolerant resolution: outlook/watch decorations + non-grade sentinels ────────────────────
+
+    [Theory]
+    [InlineData("BBB- (Negative)", 10)]
+    [InlineData("A2 *-", 6)]              // CreditWatch-down marker stripped
+    [InlineData("A (low), Negative", 7)] // DBRS grade + trailing outlook
+    [InlineData("Baa2 (Stable)", 9)]
+    [InlineData("BB (high)", 11)]        // DBRS level modifier is NOT stripped (undecorated resolves too)
+    public void TryToNotch_Resolves_Grades_With_Outlook_Or_Watch_Decorations(string label, int notch)
+    {
+        NotchLadder.TryToNotch(label, out int resolved).Should().BeTrue();
+        resolved.Should().Be(notch);
+    }
+
+    [Theory]
+    [InlineData("NR")]   // not rated
+    [InlineData("WR")]   // withdrawn
+    [InlineData("D")]    // default
+    [InlineData("SD")]   // selective default
+    [InlineData("RD")]   // restricted default
+    [InlineData("LD")]   // limited default
+    [InlineData("nr")]   // case-insensitive
+    [InlineData("  WR ")] // whitespace tolerant
+    [InlineData("")]
+    [InlineData("   ")]
+    [InlineData(null)]
+    public void TryToNotch_Returns_False_For_NonGrade_Or_Blank(string? label)
+    {
+        NotchLadder.TryToNotch(label, out int notch).Should().BeFalse();
+        notch.Should().Be(0);
+    }
+
+    [Theory]
+    [InlineData("NR", true)]
+    [InlineData("WR", true)]
+    [InlineData("D", true)]
+    [InlineData("SD", true)]
+    [InlineData("BBB-", false)]
+    [InlineData("A (low)", false)]
+    [InlineData("C", false)]      // C is a valid grade (notch 21), NOT a non-grade status
+    [InlineData(null, false)]
+    public void IsNonGradeStatus_Classifies_Sentinels(string? label, bool expected)
+    {
+        NotchLadder.IsNonGradeStatus(label).Should().Be(expected);
+    }
+
+    [Theory]
+    [InlineData("NR")]
+    [InlineData("WR")]
+    [InlineData("D")]
+    public void ToNotch_Still_Throws_On_NonGrade_Status(string label)
+    {
+        // The strict ToNotch keeps its fail-loud contract; only the tolerant TryToNotch degrades softly.
+        var act = () => NotchLadder.ToNotch(label);
+        act.Should().Throw<ArgumentException>();
+    }
 }

@@ -15,9 +15,11 @@ import { Label } from '@/components/ui/label'
 import { DecompositionWaterfall } from '@/components/prism/DecompositionWaterfall'
 import { DivergenceBoard } from '@/components/prism/DivergenceBoard'
 import { DossierPanel } from '@/components/prism/DossierPanel'
+import { MorningstarContextPanel } from '@/components/prism/MorningstarContextPanel'
 import { RedFlagBanner } from '@/components/prism/RedFlagBanner'
 import { RedFlagPanel } from '@/components/prism/RedFlagPanel'
 import { ScopeNotice } from '@/components/prism/ScopeNotice'
+import { useIssuers } from '@/hooks/useIssuers'
 import { useReconciliationRun } from '@/hooks/useReconciliation'
 import { ApiError } from '@/lib/apiClient'
 import { widestDivergence } from '@/lib/prismFormat'
@@ -36,6 +38,13 @@ export default function ReconciliationPage() {
   // The sweep auto-runs as a query keyed on (issuer, as-of); `refetch()` re-runs it on demand.
   const { data: dossier, isPending, isFetching, isError, error, refetch } =
     useReconciliationRun(issuerId, asOf)
+
+  // Issuer facts (name, sector) for the market-context companion — from the cached issuer cast.
+  const { data: issuers } = useIssuers()
+  const issuer = useMemo(
+    () => issuers?.find((item) => item.issuerId === issuerId) ?? null,
+    [issuers, issuerId],
+  )
 
   function handleRerun() {
     if (!issuerId) return
@@ -73,7 +82,12 @@ export default function ReconciliationPage() {
             <CardContent className="flex flex-wrap items-end justify-between gap-4 p-4">
               <div>
                 <span className="text-xs uppercase tracking-wide text-muted-foreground">Issuer</span>
-                <p className="font-mono text-lg text-foreground">{issuerId}</p>
+                <p className="text-lg text-foreground">{issuer?.legalName ?? issuerId}</p>
+                {issuer && (
+                  <p className="font-mono text-xs text-muted-foreground">
+                    {issuer.ticker} · {issuer.sector}
+                  </p>
+                )}
               </div>
               <div className="flex items-end gap-3">
                 <div className="space-y-1">
@@ -138,7 +152,14 @@ export default function ReconciliationPage() {
               <DivergenceBoard dossier={dossier} />
               {widest && <DecompositionWaterfall divergence={widest} />}
               <RedFlagPanel flags={dossier.flags} />
-              <DossierPanel dossier={dossier} />
+              <DossierPanel dossier={dossier} issuerName={issuer?.legalName} />
+              <MorningstarContextPanel
+                key={dossier.issuerId}
+                issuerId={dossier.issuerId}
+                issuerName={issuer?.legalName}
+                sector={issuer?.sector}
+                ticker={issuer?.ticker}
+              />
             </>
           ) : null}
         </>

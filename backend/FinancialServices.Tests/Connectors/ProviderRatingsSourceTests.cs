@@ -91,7 +91,9 @@ public sealed class ProviderRatingsSourceTests
             AsOfDate: new DateTimeOffset(2026, 6, 25, 0, 0, 0, TimeSpan.Zero),
             RatingActionDate: new DateTimeOffset(2026, 1, 15, 0, 0, 0, TimeSpan.Zero),
             Factors: factors,
-            SourceRef: "moodys:doc#42");
+            SourceRef: "moodys:doc#42",
+            Outlook: RatingOutlook.Negative,
+            UnderReview: true);
 
         var rating = record.ToProviderRating();
 
@@ -102,6 +104,8 @@ public sealed class ProviderRatingsSourceTests
         rating.InputAsOfDate.Should().Be(record.RatingActionDate); // stale-flag driver
         rating.Factors.Should().BeSameAs(factors);
         rating.MethodologyDocId.Should().Be("moodys:doc#42");       // SourceRef carried through
+        rating.Outlook.Should().Be(RatingOutlook.Negative);          // R6 — outlook carried through
+        rating.UnderReview.Should().BeTrue();                        // R6 — CreditWatch carried through
     }
 
     private static IOptions<PrismOptions> Options() =>

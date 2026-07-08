@@ -66,16 +66,18 @@ public static class ServiceCollectionExtensions
     }
 
     /// <summary>
-    /// Registers the live-provider MCP seam (pkg 13, Round 1): the SSRF-guarded
-    /// <see cref="Connectors.Mcp.McpToolSessionFactory"/> used by the discovery CLI and (Round 2) the
-    /// connectors. Purely additive — nothing on the reconciliation hot path resolves it, and every
-    /// provider flag defaults <c>Enabled=false</c>, so registering it never changes runtime behavior
-    /// (planning §11 — synthetic stays the default). The per-provider token cache is <b>not</b> a DI
-    /// singleton (its path is provider-specific); it is constructed where a provider is authenticated.
+    /// Registers the live-provider MCP seam (pkg 13): the SSRF-guarded
+    /// <see cref="Connectors.Mcp.McpToolSessionFactory"/> used by the discovery CLI and the runtime
+    /// Morningstar context-enrichment service (<see cref="Services.MarketContext.IMorningstarContextService"/>).
+    /// Off the reconciliation hot path, and Morningstar defaults <c>Enabled=false</c> — so the service
+    /// returns <c>Disabled</c> without connecting and registering this never changes the default
+    /// synthetic-only behavior (planning §11). The per-provider token cache is <b>not</b> a DI singleton
+    /// (its path is provider-specific); it is constructed where a provider is authenticated.
     /// </summary>
     public static IServiceCollection AddProviderMcp(this IServiceCollection services)
     {
         services.AddSingleton<Connectors.Mcp.McpToolSessionFactory>();
+        services.AddSingleton<Services.MarketContext.IMorningstarContextService, Services.MarketContext.MorningstarContextService>();
         return services;
     }
 

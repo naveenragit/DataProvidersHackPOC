@@ -19,4 +19,20 @@ describe('ProviderVerdictCard', () => {
     expect(screen.getAllByText('2025-09-15').length).toBeGreaterThan(0)
     expect(screen.getByText('nordstar-msci')).toBeInTheDocument()
   })
+
+  it('shows the outlook badge only when the outlook is known', () => {
+    render(<ProviderVerdictCard verdict={{ ...msci, outlook: 'Negative', underReview: false }} />)
+    expect(screen.getByText('Negative outlook')).toBeInTheDocument()
+    expect(screen.queryByText('Under review')).not.toBeInTheDocument()
+  })
+
+  it('hides the outlook badge when the outlook is Unknown', () => {
+    render(<ProviderVerdictCard verdict={{ ...msci, outlook: 'Unknown', underReview: false }} />)
+    expect(screen.queryByText(/outlook/i)).not.toBeInTheDocument()
+  })
+
+  it('shows the under-review badge when the provider is on CreditWatch', () => {
+    render(<ProviderVerdictCard verdict={{ ...msci, underReview: true }} />)
+    expect(screen.getByText('Under review')).toBeInTheDocument()
+  })
 })

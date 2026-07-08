@@ -12,6 +12,7 @@ import {
 } from '@/components/ui/dialog'
 import { DeferredNarrationNote } from './DeferredNarrationNote'
 import { SEVERITY_BADGE_CLASS, SEVERITY_BADGE_VARIANT, SEVERITY_LABEL } from './redFlagStyles'
+import { describeEvidenceRef, precedentsForFlag } from '@/lib/evidenceCatalog'
 import type { RedFlagDto } from '@/types/prism'
 
 interface RuleModalProps {
@@ -57,20 +58,53 @@ export function RuleModal({ flag, open, onOpenChange }: RuleModalProps) {
                   Evidence
                 </h3>
                 {flag.evidenceRefs.length > 0 ? (
-                  <ul className="space-y-1">
-                    {flag.evidenceRefs.map((ref) => (
-                      <li
-                        key={ref}
-                        className="rounded-md border border-border bg-background px-3 py-2 font-mono text-xs text-foreground"
-                      >
-                        {ref}
-                      </li>
-                    ))}
+                  <ul className="space-y-1.5">
+                    {flag.evidenceRefs.map((ref) => {
+                      const row = describeEvidenceRef(ref)
+                      return (
+                        <li key={ref} className="rounded-md border border-border bg-background px-3 py-2">
+                          <div className="flex items-baseline justify-between gap-2">
+                            <span className="text-sm font-medium text-foreground">{row.label}</span>
+                            <span className="font-mono text-[10px] text-muted-foreground">{ref}</span>
+                          </div>
+                          <p className="mt-0.5 text-xs text-muted-foreground">{row.detail}</p>
+                        </li>
+                      )
+                    })}
                   </ul>
                 ) : (
                   <p className="text-xs text-muted-foreground">No evidence references on this flag.</p>
                 )}
               </section>
+
+              {precedentsForFlag(flag.code).length > 0 && (
+                <section>
+                  <h3 className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                    Real-world precedents
+                  </h3>
+                  <p className="mb-2 text-xs text-muted-foreground">
+                    Documented cases where rating agencies rated the same issuer differently for this
+                    reason — shown as context, not a view on this issuer.
+                  </p>
+                  <ul className="space-y-2">
+                    {precedentsForFlag(flag.code).map((precedent) => (
+                      <li
+                        key={precedent.title}
+                        className="rounded-md border border-border bg-muted/20 px-3 py-2"
+                      >
+                        <div className="flex flex-wrap items-baseline justify-between gap-x-2">
+                          <span className="text-sm font-medium text-foreground">{precedent.title}</span>
+                          <span className="text-xs text-muted-foreground">{precedent.period}</span>
+                        </div>
+                        <p className="mt-1 text-xs text-muted-foreground">{precedent.detail}</p>
+                        <p className="mt-1 text-[10px] uppercase tracking-wide text-muted-foreground/80">
+                          Source: {precedent.source}
+                        </p>
+                      </li>
+                    ))}
+                  </ul>
+                </section>
+              )}
 
               {flag.narrative ? (
                 <section>

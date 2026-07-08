@@ -30,7 +30,23 @@ export function ProviderVerdictCard({ verdict, highlighted = false }: ProviderVe
         </Badge>
       </CardHeader>
       <CardContent className="space-y-3">
-        <div className="text-2xl font-semibold tracking-tight text-foreground">{verdict.letter}</div>
+        <div className="flex items-center gap-2">
+          <div className="text-2xl font-semibold tracking-tight text-foreground">{verdict.letter}</div>
+          {verdict.outlook && verdict.outlook !== 'Unknown' && (
+            <Badge variant="outline" className="text-[10px]" title="Forward-looking outlook">
+              {verdict.outlook} outlook
+            </Badge>
+          )}
+          {verdict.underReview && (
+            <Badge
+              variant="outline"
+              className="border-transparent bg-amber-500/15 text-[10px] text-amber-500"
+              title="On CreditWatch / under review"
+            >
+              Under review
+            </Badge>
+          )}
+        </div>
         <dl className="space-y-1 text-xs text-muted-foreground">
           <div className="flex justify-between gap-2">
             <dt>Rating as-of</dt>

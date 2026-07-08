@@ -25,7 +25,7 @@ public static class PrismDtoMappings
 
     /// <summary>Projects one provider rating into its verdict DTO (reused by the pkg-07 stream events).</summary>
     public static ProviderVerdictDto ToVerdictDto(this ProviderRating r) =>
-        new(r.Provider, r.Letter, r.Notch, r.AsOfDate, r.InputAsOfDate, r.MethodologyDocId);
+        new(r.Provider, r.Letter, r.Notch, r.AsOfDate, r.InputAsOfDate, r.MethodologyDocId, r.Outlook, r.UnderReview);
 
     /// <summary>Projects one decomposed pair divergence into its DTO (reused by the pkg-07 stream events).</summary>
     public static PairDivergenceDto ToDivergenceDto(this PairDivergence d) =>

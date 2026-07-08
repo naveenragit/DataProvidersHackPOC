@@ -14,6 +14,6 @@
     { "name": "BusinessRisk", "weight": 0.20, "score": 48, "sourceRef": "morningstardbrs-methodology" },
     { "name": "SectorTreatment", "weight": 0.20, "score": 47, "sourceRef": "morningstardbrs-methodology" }
   ],
-  "content": "Illustrative Morningstar DBRS-style issuer credit assessment for Meridian Freight, dated 2025-11-13 on Q3 fundamentals as of 2025-09-30. A marginally more conservative read of the same leverage and coverage inputs places Meridian at BB (high), the top high-yield notch. The gap to the other anchor is a single notch, but because it straddles the investment-grade / high-yield boundary it changes the issuer's eligibility bucket.",
+  "content": "Illustrative Morningstar DBRS-style issuer credit assessment for Ford Motor Company, dated 2025-11-13 on Q3 fundamentals as of 2025-09-30. A marginally more conservative read of the same leverage and coverage inputs places Ford at BB (high), the top high-yield notch. The gap to the other anchor is a single notch, but because it straddles the investment-grade / high-yield boundary it changes the issuer's eligibility bucket.",
   "disclaimer": "Synthetic, illustrative — not Morningstar DBRS data."
 }

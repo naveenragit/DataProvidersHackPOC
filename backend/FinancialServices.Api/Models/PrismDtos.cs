@@ -29,7 +29,9 @@ public sealed record ProviderVerdictDto(
     int Notch,
     DateTimeOffset AsOfDate,
     DateTimeOffset InputAsOfDate,
-    string MethodologyDocId);
+    string MethodologyDocId,
+    RatingOutlook Outlook = RatingOutlook.Unknown,
+    bool UnderReview = false);
 
 /// <summary>One attribution bucket's signed contribution to a provider pair's notch gap.</summary>
 public sealed record BucketAttributionDto(

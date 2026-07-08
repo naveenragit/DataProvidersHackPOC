@@ -14,6 +14,6 @@
     { "name": "BusinessRisk", "weight": 0.20, "score": 43, "sourceRef": "morningstardbrs-methodology" },
     { "name": "SectorTreatment", "weight": 0.20, "score": 42, "sourceRef": "morningstardbrs-methodology" }
   ],
-  "content": "Illustrative Morningstar DBRS-style issuer credit assessment for Aster Bio Therapeutics, dated 2025-11-15 on Q3 fundamentals as of 2025-09-30. The assessment agrees with the other anchor at BB (mid), the same notch. Because the third provider does not cover Aster Bio, reconciliation must mark that coverage as missing and lower confidence accordingly rather than inferring a rating.",
+  "content": "Illustrative Morningstar DBRS-style issuer credit assessment for Moderna, Inc., dated 2025-11-15 on Q3 fundamentals as of 2025-09-30. The assessment agrees with the other anchor at BB (mid), the same notch. Because the third provider does not cover Moderna, reconciliation must mark that coverage as missing and lower confidence accordingly rather than inferring a rating.",
   "disclaimer": "Synthetic, illustrative — not Morningstar DBRS data."
 }

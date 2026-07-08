@@ -17,11 +17,37 @@ public enum Provider
 /// </summary>
 public static class NotchLadder
 {
+    /// <summary>
+    /// The investment-grade floor on the canonical ladder: <c>BBB-</c> / <c>Baa3</c> = notch 10. Any
+    /// notch ≤ this is investment grade; notch ≥ 11 (<c>BB+</c> / <c>Ba1</c>) is high yield. This is the
+    /// single boundary constant the IG/HY straddle logic reuses (see <see cref="IsInvestmentGrade"/>).
+    /// </summary>
+    public const int IgHyFloorNotch = 10;
+
     // Canonical long-term ladder (S&P/Fitch style anchor). 1 = AAA … 21 = C.
     private static readonly string[] Canonical =
     {
         "AAA", "AA+", "AA", "AA-", "A+", "A", "A-", "BBB+", "BBB", "BBB-",
         "BB+", "BB", "BB-", "B+", "B", "B-", "CCC+", "CCC", "CCC-", "CC", "C"
+    };
+
+    // Non-grade statuses that are NOT points on the notch ladder — a rating agency legitimately emits
+    // these instead of a grade. They must never crash the deterministic path (P1): the ingestion
+    // boundary treats them as "no active comparable rating" and drops the card, which surfaces as
+    // MISSING_COVERAGE rather than a fabricated notch. NR/WR = not-rated / withdrawn (no opinion);
+    // D/SD/RD/LD = default states (an opinion, but a terminal one outside the 1–21 opinion ladder;
+    // mapping a default to a distinct notch is a deliberate future refinement).
+    private static readonly IReadOnlySet<string> NonGradeStatuses =
+        new HashSet<string>(new[] { "NR", "WR", "D", "SD", "RD", "LD" }, StringComparer.Ordinal);
+
+    // Known outlook / CreditWatch decorations that ride ALONGSIDE a grade (e.g. "BBB- (Negative)",
+    // "A2 *-"). They carry direction, not level, so they are stripped before the ladder lookup. DBRS
+    // "(HIGH)/(MID)/(LOW)" are level modifiers and are deliberately NOT in this set.
+    private static readonly string[] OutlookDecorations =
+    {
+        "(NEGATIVE)", "(POSITIVE)", "(STABLE)", "(DEVELOPING)",
+        ",NEGATIVE", ",POSITIVE", ",STABLE", ",DEVELOPING",
+        "*-", "*+", "*",
     };
 
     // Provider-specific label → canonical notch. DBRS uses "(high)/(mid)/(low)"; Moody's uses Aaa/Aa1…
@@ -34,11 +60,60 @@ public static class NotchLadder
         // Fail-loud on null/blank (P1) — a clear ArgumentException, never a NullReferenceException.
         ArgumentException.ThrowIfNullOrWhiteSpace(label);
 
-        return Map.TryGetValue(Normalize(label), out var notch)
+        return TryToNotch(label, out var notch)
             ? notch
-            // An unrecognized grade is a bad *value*, not a numeric range violation → ArgumentException.
+            // An unrecognized grade or a non-grade status is a bad *value* for a strict notch lookup →
+            // ArgumentException. Tolerant callers (the ingestion mapper) use TryToNotch instead (P1).
             : throw new ArgumentException($"Unknown rating '{label}'.", nameof(label));
     }
+
+    /// <summary>
+    /// Tolerant notch resolution for the ingestion boundary (R2): resolves a grade — including one that
+    /// carries an outlook / CreditWatch decoration (e.g. <c>"BBB- (Negative)"</c>, <c>"A2 *-"</c>) — to
+    /// its canonical notch, and returns <c>false</c> (never throws) for a blank label or a non-grade
+    /// status such as <c>NR</c> / <c>WR</c> / <c>D</c> / <c>SD</c> / <c>RD</c> / <c>LD</c>. Callers drop
+    /// unresolved cards so a withdrawn/not-rated feed row becomes MISSING_COVERAGE, not a crash (P1).
+    /// </summary>
+    public static bool TryToNotch(string? label, out int notch)
+    {
+        notch = 0;
+        if (string.IsNullOrWhiteSpace(label))
+        {
+            return false;
+        }
+
+        var key = Normalize(label);
+
+        // Exact grade first — keeps DBRS "(HIGH)/(MID)/(LOW)" and every canonical/Moody's alias intact.
+        if (Map.TryGetValue(key, out notch))
+        {
+            return true;
+        }
+
+        // A pure non-grade status (possibly decorated) resolves to no notch — the card has no
+        // comparable opinion on the ladder.
+        var undecorated = StripOutlookDecorations(key);
+        if (undecorated.Length == 0 || NonGradeStatuses.Contains(undecorated))
+        {
+            notch = 0;
+            return false;
+        }
+
+        // Otherwise retry the ladder with the outlook/watch decoration removed (level, not direction).
+        return Map.TryGetValue(undecorated, out notch);
+    }
+
+    /// <summary>
+    /// True when <paramref name="label"/> is a non-grade rating status (<c>NR</c>, <c>WR</c>, <c>D</c>,
+    /// <c>SD</c>, <c>RD</c>, <c>LD</c>) rather than a point on the notch ladder. Tolerant of case,
+    /// whitespace, and any trailing outlook / CreditWatch decoration.
+    /// </summary>
+    public static bool IsNonGradeStatus(string? label) =>
+        !string.IsNullOrWhiteSpace(label)
+        && NonGradeStatuses.Contains(StripOutlookDecorations(Normalize(label)));
+
+    /// <summary>True when <paramref name="notch"/> is investment grade (≤ <see cref="IgHyFloorNotch"/>).</summary>
+    public static bool IsInvestmentGrade(int notch) => notch <= IgHyFloorNotch;
 
     /// <summary>Canonical S&amp;P-style label for a notch (1–21).</summary>
     /// <exception cref="ArgumentOutOfRangeException">The notch is outside the valid 1–21 range.</exception>
@@ -52,7 +127,7 @@ public static class NotchLadder
 
     /// <summary>True when a and b sit on opposite sides of the investment-grade / high-yield line.</summary>
     public static bool CrossesIgHyBoundary(string a, string b) =>
-        (ToNotch(a) <= 10) != (ToNotch(b) <= 10); // BBB- (10) is the IG floor
+        IsInvestmentGrade(ToNotch(a)) != IsInvestmentGrade(ToNotch(b)); // BBB- (10) is the IG floor
 
     // Tolerant match key (D6): uppercase and strip ALL whitespace so "A (LOW)", "A(LOW)", and
     // "A  (low)" resolve to the same notch. Public labels stay canonical (see ToLabel).
@@ -68,6 +143,23 @@ public static class NotchLadder
         }
 
         return builder.ToString();
+    }
+
+    // Removes any known outlook / CreditWatch decoration from an already-normalized key. Only the
+    // decorations in <see cref="OutlookDecorations"/> are stripped (direction markers), so DBRS level
+    // modifiers "(HIGH)/(MID)/(LOW)" and every grade alias are untouched.
+    private static string StripOutlookDecorations(string normalizedKey)
+    {
+        var key = normalizedKey;
+        foreach (var decoration in OutlookDecorations)
+        {
+            if (key.Contains(decoration, StringComparison.Ordinal))
+            {
+                key = key.Replace(decoration, string.Empty, StringComparison.Ordinal);
+            }
+        }
+
+        return key;
     }
 
     private static Dictionary<string, int> BuildMap()

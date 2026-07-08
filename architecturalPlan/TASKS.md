@@ -85,6 +85,26 @@ Legend: **Arch** = follows a rule in `architecturalPlan/`; **Impl** = a work pac
 
 ---
 
+## Phase 6 — Deterministic-core completeness (R1–R7 · 2026-07-08)
+
+Closes seven gaps found reviewing the deterministic rating-divergence core. Plan:
+`.copilot-tracking/plans/2026-07-08/14-deterministic-completeness-plan.md`. All P2 (pure C#), P4-clean.
+
+| ✔ | Task | Ref | Owner |
+|---|---|---|---|
+| [x] | **R1** `IG_HY_BOUNDARY` (high) red flag wired to `NotchLadder.IsInvestmentGrade`/`IgHyFloorNotch` | Impl 05 / P2 | orch |
+| [x] | **R2** `NotchLadder.TryToNotch`/`IsNonGradeStatus` — NR/WR/D/SD/RD/LD + outlook-suffix tolerant; mapper drops non-grade cards → MISSING_COVERAGE (no crash) | Impl 05 / P1 | orch |
+| [x] | **R3** `METHODOLOGY_CONFLICT` suppressed when a pair provider is STALE | Impl 05 / P2 | orch |
+| [x] | **R4** `OUTLIER_PROVIDER` unique-max-distance (no symmetric double-fire) | Impl 05 / P2 | orch |
+| [x] | **R5** `STALE_INPUT` 45-day materiality window | Impl 05 / P2 | orch |
+| [x] | **R6** `RatingOutlook` + `UnderReview` modelled through record→DTO→TS; `PROVIDER_UNDER_REVIEW` (low) flag; verdict-card badges; corpus-row wired | Impl 05,09 | orch |
+| [x] | **R7** `ConfidenceScore` de-duplicates penalties by flag code | Impl 05 / P2 | orch |
+| [x] | **F1** (adversary) outlier suppresses the parallel `METHODOLOGY_CONFLICT` (no triple-report) | Arch 11 | orch |
+| [x] | Backend 260 tests green (0-warn build); adversarial review ×2 PASS (0 Critical/High) | Arch 11 | orch |
+| [x] | Demo deck slide 06 "Deterministic Core" explaining the engine | Impl 12 | orch |
+
+---
+
 ## Cross-cutting adherence gates (check before each PR/merge)
 
 - [ ] No mock/fake data in runtime code; missing config fails loud (P1)
@@ -115,6 +135,15 @@ it implements, adversarially reviews, and corrects the work. Newest first.
 - **Residual risks:** {none | …}
 -->
 
+### 14 — Deterministic-core completeness (R1–R7) · 2026-07-08
+- **Status:** **done.** Seven completeness gaps closed in the deterministic rating-divergence core after a deep review; both adversarial reviews PASS with zero Critical/High.
+- **Built:** `NotchLadder` — `IgHyFloorNotch`/`IsInvestmentGrade`, tolerant `TryToNotch`/`IsNonGradeStatus` (NR/WR/D/SD/RD/LD + outlook/CreditWatch decorations). `RedFlagEngine` — new `IG_HY_BOUNDARY` (high) + `PROVIDER_UNDER_REVIEW` (low); STALE_INPUT 45-day materiality window; OUTLIER unique-max-distance; METHODOLOGY_CONFLICT suppressed when a pair provider is stale (R3) **or** the lone outlier (F1). `ReconciliationScoring` — confidence penalties de-duplicated by flag code. `RatingOutlook` enum + `UnderReview` threaded `ProviderRating`→`ProviderRatingRecord`→`ProviderVerdictDto`→`prism.ts`→`ProviderVerdictCard`; corpus row wired via `SearchCorpusMapper.ParseOutlook`. `SearchCorpus` drops non-grade cards with an observability log. New emission order STALE→IG_HY→MISSING→OUTLIER→UNDER_REVIEW→METHODOLOGY_CONFLICT.
+- **Plan:** `.copilot-tracking/plans/2026-07-08/14-deterministic-completeness-plan.md`.
+- **Adversarial review:** **Prism Standards Adversary** — PASS (0C/0H; F1 Medium fixed + F2–F5 Low). **Fin Adversary Stack Critic** — PASS contract fidelity (0C/0H; STK-07 Medium fixed via corpus wiring, STK-08 Low fixed). Report: `.copilot-tracking/reviews/2026-07-08/adversarial-stack-review.md`.
+- **Build/tests:** `dotnet build` ✅ (0 warn, warnaserror) · `dotnet test` ✅ **260 passing** (was 255; +5) · frontend `tsc`/`vite build` ✅ · new `ProviderVerdictCard` outlook/under-review tests ✅. Pre-existing frontend failures (`RedFlagPanel`/`ReconciliationPage` from uncommitted Morningstar-context WIP) confirmed unrelated via a stash baseline and left untouched.
+- **Demo:** new deck slide 06 "Deterministic Core — Every divergence, decoded by pure C#" (rendered-verified in browser).
+- **Residual risks:** `Outlook`/`UnderReview`/`PROVIDER_UNDER_REVIEW` are wired end-to-end but inert until a real corpus/provider row supplies the data (honest under P1); no seed-data/index change made.
+
 ### 13 — Live rating-provider MCP connectors (Round 1: foundation) · 2026-07-07
 - **Status:** Round 1 **done** (credential-independent foundation + Phase-0 discovery CLI). Round 2 (mappers → `ProviderRatingRecord`, Search ingestion + ARC-01 precedence, live validation) **DEFERRED** pending the operator's Phase-0 discovery run.
 - **Built:** `PrismOptions.Providers` (Morningstar/Moodys, `Enabled=false` default); `Connectors/Mcp/` — `ProviderMcpEndpointGuard` (SSRF `https`+exact-host allowlist + auth-server domain bounding), `ProviderOAuth`/`LoopbackAuthorizationHandler`/`FileTokenCache`/`TokenFreshness` (OAuth 2.1 PKCE + refresh, `offline_access`-only scope), `McpToolSession[+I+Factory]` over **`ModelContextProtocol.Core` 1.4.0**; `Errors/ReloginRequiredException`; `tools/ProviderDiscovery/` + `run-provider-discovery.bat`. Env placeholders in `.env`/`.env.example`; `.prism/` git-ignored.
@@ -125,6 +154,14 @@ it implements, adversarially reviews, and corrects the work. Newest first.
   - **Tracked follow-ups (Round 1.5 / Round 2):** extract a `FinancialServices.Providers` class lib so the CLI doesn't drag the whole API (STK-13-01/ARC coupling); reconnecting session provider (ARC-01); authoritative `ProviderMcpKey→Provider` map guarding Round-2 dual-source precedence (ARC-03); MCP HttpClient timeout + fail-soft `Try*` surface (ARC-02/SEC-03); token file `0600`/DPAPI (SEC-13R1-02); reject empty OAuth `state` (SEC-13R1-04); `AuthServerSelector` return `null` (STK-13-02); McpToolSession/CSRF parse tests (ARC-10).
 - **Build/tests:** `dotnet build` ✅ (0 warn, warnaserror) · `dotnet test` ✅ **220 passing** (199 API + 21 SeedData) · no regressions.
 - **Residual risks:** live behaviour unverified until the operator runs `run-provider-discovery.bat --provider morningstar|moodys` with real creds (the Phase-0 go/no-go gate); Round 2 is blocked on that result.
+
+### 13a — Live Morningstar context enrichment · 2026-07-07
+- **Status:** **done + live-verified.** Phase-0 discovery run confirmed the go/no-go for both providers, then a first live feature shipped.
+- **Discovery outcome:** **Morningstar** MCP = 7 equity/fund/ETF tools (NO corporate-bond credit ratings — DBRS is a separate product) → **not** a reconciliation source, but rich **context**. DCR works (blank `ClientId`). **Moody's** MCP = the right credit-ratings data (`getEntityRatings`/`RatingDrivers`/`Scorecard`) but its `/oauth/register` **rejects all loopback redirects** (proven with our CLI ×4 + `mcp-remote`) — only pre-approved hosted clients (Claude.ai) work, so Prism can't connect without Moody's allow-listing our redirect. Moody's live = deferred (needs provider onboarding).
+- **Built (context-only, P4-safe, separate from reconciliation):** backend `Services/MarketContext/` (`IMorningstarContextService`+impl, `MorningstarResponseParser`), `Models/MarketContextDtos.cs`, `Controllers/MarketContextController.cs` (`GET /api/v1/market-context/morningstar?identifier=`); runtime reuses the discovery-CLI token **headlessly** (`HeadlessRedirect`+`FileTokenCache`+`DcrClientStore`), id-lookup→analyst-research, **fail-soft** (every state a 200 status, never 5xx), P6 logging. Frontend `MorningstarContextPanel` (real-ticker explorer, default AAPL) + `useMorningstarContext` + reconciliation-page wiring + `types/prism.ts`. Workflow viz += 2nd tab "Live Market Context (Morningstar)" (5 nodes/4 edges).
+- **Fixes:** `McpClientOptions.InitializationTimeout` made configurable (SDK 60s default was cancelling the interactive login); `ProviderOAuth` now supports RFC 7591 **dynamic client registration** (optional `ClientId`) + `DcrClientStore` persistence; parser decodes Morningstar's double-escaped `\uXXXX` punctuation.
+- **Guardrails:** context feature is decoupled from the rating engine (never feeds a notch/gap/flag); "not investment advice" disclaimer (P4); fictional issuers return `NotCovered`; Morningstar `Enabled=false` default keeps it inert → synthetic stays the default (§11).
+- **Build/tests:** `dotnet build` ✅ · `dotnet test` ✅ **238 passing** (217 API incl. 18 new parser tests + 21 SeedData) · frontend `npm run build` ✅ · **live-verified** in-browser (AAPL → Apple Inc + 4 attributed research sections).
 
 ### 10 — Prism UI & Workflow Visualization · 2026-07-06
 - **Status:** done (deterministic dossier UI live against the pkg-08 API; pkg-07 copilot/AG-UI narration deferred as honest placeholders)

@@ -14,6 +14,6 @@
     { "name": "BusinessRisk", "weight": 0.20, "score": 72, "sourceRef": "morningstardbrs-methodology" },
     { "name": "SectorTreatment", "weight": 0.20, "score": 71, "sourceRef": "morningstardbrs-methodology" }
   ],
-  "content": "Illustrative Morningstar DBRS-style issuer credit assessment for Cedar Grove Foods, dated 2025-10-31 on Q3 fundamentals as of 2025-09-30. The assessment lands at A (mid), the same notch as the other anchor, on matching leverage and coverage inputs. Cedar Grove is the consensus control: agreement across providers with no divergence to explain.",
+  "content": "Illustrative Morningstar DBRS-style issuer credit assessment for The Coca-Cola Company, dated 2025-10-31 on Q3 fundamentals as of 2025-09-30. The assessment lands at A (mid), the same notch as the other anchor, on matching leverage and coverage inputs. Coca-Cola is the consensus control: agreement across providers with no divergence to explain.",
   "disclaimer": "Synthetic, illustrative — not Morningstar DBRS data."
 }

@@ -16,8 +16,9 @@ using Prism.ProviderDiscovery;
 //   --out <dir>                     (optional) findings-note directory (default .prism/discovery/<date>, git-ignored)
 // Reads Prism__Providers__<Name>__* from the environment (load .env first, e.g. via
 // run-provider-discovery.bat). Auth is a ONE-TIME interactive browser login; the refresh token is
-// stored in a git-ignored FileTokenCache. Fails loud (P1) when the provider is disabled or has no
-// ClientId. Exit codes: 0 success · 1 fault · 2 usage error.
+// stored in a git-ignored FileTokenCache. A ClientId is optional — when blank, the SDK registers a
+// client dynamically (RFC 7591) and it is persisted for reuse. Fails loud (P1) when the provider is
+// disabled. Exit codes: 0 success · 1 fault · 2 usage error.
 
 var parsed = CliArgs.TryParse(args, out var cli, out var usageError);
 if (!parsed)
@@ -61,11 +62,9 @@ if (!providerOptions.Enabled)
 
 if (string.IsNullOrWhiteSpace(providerOptions.ClientId))
 {
-    logger.LogError(
-        "{Provider} has no OAuth ClientId. Set Prism__Providers__{Provider}__ClientId (and ClientSecret) in your .env, then re-run.",
-        cli.Provider,
+    logger.LogInformation(
+        "{Provider} has no OAuth ClientId configured — the SDK will register a client dynamically (RFC 7591) and persist it for reuse.",
         cli.Provider);
-    return 1;
 }
 
 try
@@ -74,18 +73,32 @@ try
     var tokenPath = FileTokenCache.DefaultPathFor(cli.Provider, repoRoot);
     var tokenCache = new FileTokenCache(tokenPath, cli.Provider.ToString(), loggerFactory.CreateLogger<FileTokenCache>());
 
+    // Persist / reuse the client_id the SDK mints via dynamic registration — the cached refresh token is
+    // bound to it, so a re-run must present the same client (else the refresh fails and it re-registers).
+    var clientStore = new DcrClientStore(
+        DcrClientStore.DefaultPathFor(cli.Provider, repoRoot),
+        cli.Provider.ToString(),
+        loggerFactory.CreateLogger<DcrClientStore>());
+    var persistedClient = clientStore.Load();
+
     var redirect = LoopbackAuthorizationHandler.CreateDelegate(
         loggerFactory.CreateLogger("OAuthLoopback"),
         TimeSpan.FromMinutes(cli.TimeoutMinutes));
-    var oauthOptions = ProviderOAuth.BuildOptions(cli.Provider, providerOptions, tokenCache, redirect);
+    var oauthOptions = ProviderOAuth.BuildOptions(
+        cli.Provider, providerOptions, tokenCache, redirect, persistedClient, clientStore.OnRegisteredAsync);
 
     logger.LogInformation(
         "Connecting to {Provider} MCP at {Url} (a browser will open for a one-time sign-in) …",
         cli.Provider,
         providerOptions.McpUrl);
 
+    // The SDK's InitializationTimeout bounds the ENTIRE connect, including the interactive login, so it
+    // must exceed the human sign-in budget (+1 min for the post-callback token exchange + handshake);
+    // otherwise the SDK cancels the browser login at its 60s default.
+    var initializationTimeout = TimeSpan.FromMinutes(cli.TimeoutMinutes) + TimeSpan.FromMinutes(1);
     var factory = new McpToolSessionFactory(loggerFactory);
-    await using var session = await factory.ConnectAsync(cli.Provider, providerOptions.McpUrl, oauthOptions, cts.Token);
+    await using var session = await factory.ConnectAsync(
+        cli.Provider, providerOptions.McpUrl, oauthOptions, cts.Token, initializationTimeout);
 
     var tools = await session.ListToolsAsync(cts.Token);
     logger.LogInformation("tools/list returned {Count} tool(s):", tools.Count);

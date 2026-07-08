@@ -61,12 +61,18 @@ public sealed class DossierAssemblerTests
     }
 
     [Fact]
-    public void Onyx_flags_the_outlier_provider()
+    public void Onyx_flags_the_outlier_provider_without_triple_reporting_the_same_gap()
     {
         ReconciliationDossier dossier = Assemble(
             PrismFixtures.OnyxIssuer(), PrismFixtures.OnyxLatest(), PrismFixtures.OnyxRatings());
 
-        dossier.Flags.Should().Contain(f => f.Code == "OUTLIER_PROVIDER");
+        // {6,6,10}: MSCI is the lone outlier. F1 — the SAME MSCI-vs-peers gap must NOT also be reported
+        // as two METHODOLOGY_CONFLICT flags; the outlier flag already carries it.
+        dossier.Flags.Should().ContainSingle().Which.Code.Should().Be("OUTLIER_PROVIDER");
+        dossier.Flags.Should().NotContain(f => f.Code == "METHODOLOGY_CONFLICT");
+        // F2 — pin confidence on the real multi-pair dossier: full coverage (1.0) minus one medium
+        // (0.15), de-duplicated by code (R7) ⇒ 0.85 (not 0.55 from three stacked medium flags).
+        dossier.ConfidenceScore.Should().BeApproximately(0.85, 1e-9);
     }
 
     [Fact]

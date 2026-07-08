@@ -10,6 +10,7 @@
 import { Bar, BarChart, Cell, ReferenceLine, ResponsiveContainer, XAxis, YAxis } from 'recharts'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { bucketOf, isResidualDominated, residualShare } from '@/lib/prismFormat'
+import { precedentForBucket } from '@/lib/evidenceCatalog'
 import { PROVIDER_LABELS } from '@/lib/settings'
 import type { Bucket, PairDivergenceDto } from '@/types/prism'
 import { DeferredNarrationNote } from './DeferredNarrationNote'
@@ -37,6 +38,20 @@ const NET_COLOR = '#94a3b8'
 export function DecompositionWaterfall({ divergence }: DecompositionWaterfallProps) {
   const aLabel = PROVIDER_LABELS[divergence.a]
   const bLabel = PROVIDER_LABELS[divergence.b]
+
+  // The bucket carrying the most mass (or the methodology residual when it dominates) selects the
+  // real-world precedent shown below — so the chart is tied to why agencies actually diverge.
+  const dominantBucket: Bucket = isResidualDominated(divergence)
+    ? 'MethodologyAdjustment'
+    : BUCKET_ORDER.reduce(
+        (best, bucket) =>
+          Math.abs(bucketOf(divergence, bucket)?.notches ?? 0) >
+          Math.abs(bucketOf(divergence, best)?.notches ?? 0)
+            ? bucket
+            : best,
+        BUCKET_ORDER[0],
+      )
+  const precedent = divergence.notchGap === 0 ? null : precedentForBucket(dominantBucket)
 
   const legend = (
     <ul className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-xs" data-testid="waterfall-legend">
@@ -128,6 +143,20 @@ export function DecompositionWaterfall({ divergence }: DecompositionWaterfallPro
         )}
 
         {legend}
+        {precedent && (
+          <div
+            className="mt-3 rounded-md border border-border bg-muted/20 px-3 py-2"
+            data-testid="waterfall-precedent"
+          >
+            <p className="text-xs font-medium text-foreground">
+              Why agencies diverge here: {precedent.title}
+            </p>
+            <p className="mt-0.5 text-xs text-muted-foreground">{precedent.detail}</p>
+            <p className="mt-1 text-[10px] uppercase tracking-wide text-muted-foreground/80">
+              Source: {precedent.source}
+            </p>
+          </div>
+        )}
         <DeferredNarrationNote subject="this decomposition" className="mt-3" />
       </CardContent>
     </Card>

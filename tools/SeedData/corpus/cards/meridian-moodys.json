@@ -14,6 +14,6 @@
     { "name": "BusinessRisk", "weight": 0.20, "score": 50, "sourceRef": "moodys-methodology" },
     { "name": "FinancialPolicy", "weight": 0.20, "score": 51, "sourceRef": "moodys-methodology" }
   ],
-  "content": "Illustrative Moody's-style issuer credit assessment for Meridian Freight, dated 2025-11-11 on Q3 fundamentals as of 2025-09-30. Elevated leverage and thin interest coverage place Meridian at Baa3, the lowest investment-grade notch. This assessment keeps Meridian just inside investment grade; the other anchor places it just below, so the single-notch gap crosses the investment-grade / high-yield boundary.",
+  "content": "Illustrative Moody's-style issuer credit assessment for Ford Motor Company, dated 2025-11-11 on Q3 fundamentals as of 2025-09-30. Elevated leverage and thin interest coverage place Ford at Baa3, the lowest investment-grade notch. This assessment keeps Ford just inside investment grade; the other anchor places it just below, so the single-notch gap crosses the investment-grade / high-yield boundary.",
   "disclaimer": "Synthetic, illustrative — not Moody's data."
 }

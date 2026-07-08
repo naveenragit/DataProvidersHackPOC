@@ -13,6 +13,6 @@
     { "name": "InterestCoverage", "weight": 0.30, "score": 65, "sourceRef": "helios-fin-q3" },
     { "name": "SectorEsgOverlay", "weight": 0.30, "score": 58, "sourceRef": "msci-methodology" }
   ],
-  "content": "Illustrative MSCI-style issuer credit assessment for Helios Utilities, dated 2025-11-16 on Q3 fundamentals as of 2025-09-30. This assessment sits between the two anchors at BBB, applying a partial sector overlay rather than a full parent-support uplift. All three assessments share the same fresh leverage input; the notch spread reflects differing methodology treatments of group support and sector risk.",
+  "content": "Illustrative MSCI-style issuer credit assessment for The Southern Company, dated 2025-11-16 on Q3 fundamentals as of 2025-09-30. This assessment sits between the two anchors at BBB, applying a partial sector overlay rather than a full parent-support uplift. All three assessments share the same fresh leverage input; the notch spread reflects differing methodology treatments of group support and sector risk.",
   "disclaimer": "Synthetic, illustrative — not MSCI data."
 }

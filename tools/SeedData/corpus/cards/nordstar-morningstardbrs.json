@@ -14,6 +14,6 @@
     { "name": "BusinessRisk", "weight": 0.25, "score": 60, "sourceRef": "morningstardbrs-methodology" },
     { "name": "SectorTreatment", "weight": 0.20, "score": 57, "sourceRef": "morningstardbrs-methodology" }
   ],
-  "content": "Illustrative Morningstar DBRS-style issuer credit assessment for NordStar Industrials, dated 2025-11-14 on the issuer's Q3 fundamentals as of 2025-09-30. Like the Moody's anchor, this assessment incorporates NordStar's Q3 deleveraging and lands at BBB (mid), equivalent to the Baa2 notch. The leverage input matches the fresher post-filing data, so both anchor providers agree; only the stale MSCI view diverges.",
+  "content": "Illustrative Morningstar DBRS-style issuer credit assessment for General Electric Company, dated 2025-11-14 on the issuer's Q3 fundamentals as of 2025-09-30. Like the Moody's anchor, this assessment incorporates GE's Q3 deleveraging and lands at BBB (mid), equivalent to the Baa2 notch. The leverage input matches the fresher post-filing data, so both anchor providers agree; only the stale MSCI view diverges.",
   "disclaimer": "Synthetic, illustrative — not Morningstar DBRS data."
 }

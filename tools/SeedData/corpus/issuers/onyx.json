@@ -6,15 +6,15 @@
   "letter": "",
   "notch": 0,
   "dataClass": "synthetic",
-  "legalName": "Onyx Capital Partners Inc.",
-  "ticker": "ONYX",
-  "cik": "0000000006",
+  "legalName": "The Goldman Sachs Group, Inc.",
+  "ticker": "GS",
+  "cik": "0000886982",
   "sector": "Financials",
-  "sampleBondIsin": "US0000ONYX66",
+  "sampleBondIsin": "US0000GS0066",
   "latestFilingDate": "2025-10-30T00:00:00Z",
   "filingType": "10-Q",
   "asOfDate": "2025-10-30T00:00:00Z",
   "inputAsOfDate": "2025-09-30T00:00:00Z",
-  "content": "Onyx Capital Partners Inc. is a synthetic, illustrative financials issuer. Two providers agree closely while a third sits several notches away from the peer median on the same fundamentals. Reconciliation must isolate the distant provider as an outlier and explain how far it is from consensus. Onyx is the anchor case for the outlier-provider pattern, where one opinion diverges sharply from its peers.",
-  "disclaimer": "Synthetic, illustrative issuer — fictional entity, not a real SEC filer."
+  "content": "The Goldman Sachs Group, Inc. is a real financials issuer; the provider ratings shown here are illustrative. Two providers agree closely while a third sits several notches away from the peer median on the same fundamentals. Reconciliation must isolate the distant provider as an outlier and explain how far it is from consensus. Goldman Sachs is the anchor case for the outlier-provider pattern, where one opinion diverges sharply from its peers.",
+  "disclaimer": "Real issuer (SEC filer); the provider ratings, factors, and dates shown are illustrative for demonstration and are not actual agency ratings."
 }

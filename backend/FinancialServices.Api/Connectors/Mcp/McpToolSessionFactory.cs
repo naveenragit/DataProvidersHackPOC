@@ -19,21 +19,34 @@ namespace FinancialServices.Api.Connectors.Mcp;
 /// </summary>
 public sealed class McpToolSessionFactory(ILoggerFactory loggerFactory)
 {
-    private static readonly McpClientOptions ClientOptions = new()
+    private static readonly Implementation ClientInfo = new() { Name = "prism-provider-mcp", Version = "1.0.0" };
+
+    // Build per-connect client options. InitializationTimeout bounds the WHOLE connect — including the
+    // interactive OAuth login — so the CLI must widen it past its human sign-in budget (the SDK default
+    // is 60s, which cancels the browser login mid-flow). null ⇒ keep the SDK default (headless runtime).
+    private static McpClientOptions BuildClientOptions(TimeSpan? initializationTimeout)
     {
-        ClientInfo = new Implementation { Name = "prism-provider-mcp", Version = "1.0.0" },
-    };
+        var options = new McpClientOptions { ClientInfo = ClientInfo };
+        if (initializationTimeout is { } timeout)
+        {
+            options.InitializationTimeout = timeout;
+        }
+
+        return options;
+    }
 
     /// <summary>
     /// Connects to <paramref name="mcpUrl"/> for <paramref name="provider"/> with the given OAuth
     /// options. The endpoint is host-allowlisted first (SEC-03); the SDK handles the
-    /// <c>initialize</c>/<c>initialized</c> handshake and bearer auth.
+    /// <c>initialize</c>/<c>initialized</c> handshake and bearer auth. <paramref name="initializationTimeout"/>
+    /// must exceed the interactive login budget for the CLI path (else the SDK cancels the browser sign-in).
     /// </summary>
     public async Task<IMcpToolSession> ConnectAsync(
         ProviderMcpKey provider,
         string? mcpUrl,
         ClientOAuthOptions oauthOptions,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken,
+        TimeSpan? initializationTimeout = null)
     {
         ArgumentNullException.ThrowIfNull(oauthOptions);
         var endpoint = ProviderMcpEndpointGuard.EnsureAllowedMcpUrl(provider, mcpUrl);
@@ -46,7 +59,7 @@ public sealed class McpToolSessionFactory(ILoggerFactory loggerFactory)
         };
 
         var transport = new HttpClientTransport(transportOptions, loggerFactory);
-        return await ConnectCoreAsync(transport, cancellationToken).ConfigureAwait(false);
+        return await ConnectCoreAsync(transport, BuildClientOptions(initializationTimeout), cancellationToken).ConfigureAwait(false);
     }
 
     /// <summary>
@@ -70,13 +83,13 @@ public sealed class McpToolSessionFactory(ILoggerFactory loggerFactory)
         };
 
         var transport = new HttpClientTransport(transportOptions, httpClient, loggerFactory, ownsHttpClient: false);
-        return await ConnectCoreAsync(transport, cancellationToken).ConfigureAwait(false);
+        return await ConnectCoreAsync(transport, BuildClientOptions(null), cancellationToken).ConfigureAwait(false);
     }
 
-    private async Task<IMcpToolSession> ConnectCoreAsync(IClientTransport transport, CancellationToken cancellationToken)
+    private async Task<IMcpToolSession> ConnectCoreAsync(IClientTransport transport, McpClientOptions clientOptions, CancellationToken cancellationToken)
     {
         var client = await McpClient
-            .CreateAsync(transport, ClientOptions, loggerFactory, cancellationToken)
+            .CreateAsync(transport, clientOptions, loggerFactory, cancellationToken)
             .ConfigureAwait(false);
         return new McpToolSession(client, loggerFactory.CreateLogger<McpToolSession>());
     }

@@ -85,7 +85,7 @@ public sealed class SearchVerifier(AzureSeedOptions options, ILogger<SearchVerif
     private async Task VerifyNordStarHybridAsync(
         SearchClient searchClient, EmbeddingClient embeddingClient, List<string> failures, CancellationToken ct)
     {
-        const string query = "NordStar leverage";
+        const string query = "General Electric leverage";
 
         // Embed the query CLIENT-SIDE with the SAME deployment used at index time (matched model), so the
         // acceptance check does not depend on the Search service's managed identity having AOAI RBAC

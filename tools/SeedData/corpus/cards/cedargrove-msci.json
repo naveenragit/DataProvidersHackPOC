@@ -13,6 +13,6 @@
     { "name": "InterestCoverage", "weight": 0.30, "score": 75, "sourceRef": "cedargrove-fin-q3" },
     { "name": "SectorEsgOverlay", "weight": 0.30, "score": 70, "sourceRef": "msci-methodology" }
   ],
-  "content": "Illustrative MSCI-style issuer credit assessment for Cedar Grove Foods, dated 2025-11-01 on Q3 fundamentals as of 2025-09-30. The assessment agrees with both anchors at the A notch on the same fresh inputs. All three providers land within a zero-notch spread, making Cedar Grove the clean consensus case.",
+  "content": "Illustrative MSCI-style issuer credit assessment for The Coca-Cola Company, dated 2025-11-01 on Q3 fundamentals as of 2025-09-30. The assessment agrees with both anchors at the A notch on the same fresh inputs. All three providers land within a zero-notch spread, making Coca-Cola the clean consensus case.",
   "disclaimer": "Synthetic, illustrative — not MSCI data."
 }

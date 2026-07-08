@@ -2,6 +2,19 @@ using FinancialServices.Api.Analysis;
 
 namespace FinancialServices.Api.Models;
 
+/// <summary>
+/// A provider's forward-looking rating outlook (direction, not level). Standard agency designation
+/// that rides alongside the grade; <see cref="Unknown"/> = not supplied by the source (no fabrication).
+/// </summary>
+public enum RatingOutlook
+{
+    Unknown,
+    Positive,
+    Stable,
+    Negative,
+    Developing
+}
+
 /// <summary>One weighted rating factor with its sub-score and citation reference.</summary>
 public sealed record RatingFactor(
     string Name,          // "Leverage", "InterestCoverage", "Profitability", "Liquidity",
@@ -18,7 +31,9 @@ public sealed record ProviderRating(
     DateTimeOffset AsOfDate,
     DateTimeOffset InputAsOfDate,  // date of the financials the rating is built on (drives stale flag)
     IReadOnlyList<RatingFactor> Factors,
-    string MethodologyDocId);
+    string MethodologyDocId,
+    RatingOutlook Outlook = RatingOutlook.Unknown, // forward-looking direction (optional; Unknown = absent)
+    bool UnderReview = false);     // on CreditWatch / under review — an imminent-change indicator
 
 /// <summary>A corporate bond issuer in the reconciliation cast.</summary>
 public sealed record Issuer(
@@ -44,7 +59,8 @@ public sealed record PairDivergence(
 
 /// <summary>A deterministic red flag with its verbatim rule text and supporting evidence.</summary>
 public sealed record RedFlag(
-    string Code,          // "STALE_INPUT" | "MISSING_COVERAGE" | "OUTLIER_PROVIDER" | "METHODOLOGY_CONFLICT"
+    string Code,          // "STALE_INPUT" | "IG_HY_BOUNDARY" | "MISSING_COVERAGE" | "OUTLIER_PROVIDER"
+                          // | "PROVIDER_UNDER_REVIEW" | "METHODOLOGY_CONFLICT"
     string Severity,      // "high" | "medium" | "low"
     string Rule,          // human-readable deterministic rule text, shown in the UI
     string Narrative,     // LLM narration

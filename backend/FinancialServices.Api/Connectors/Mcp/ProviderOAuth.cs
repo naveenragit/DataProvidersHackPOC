@@ -10,48 +10,85 @@ namespace FinancialServices.Api.Connectors.Mcp;
 /// minimized to <c>offline_access</c> only (SEC-07 — no <c>openid</c>/<c>email</c>/<c>profile</c>, so
 /// no id_token PII is requested); the refresh token the SDK persists via the supplied
 /// <see cref="ITokenCache"/> is what the runtime reuses headlessly.
+/// <para>
+/// <b>Client identification.</b> A hosted MCP server (Morningstar, Moody's) does not hand out a
+/// long-lived pre-registered <c>client_id</c>; its well-known advertises a <c>registration_endpoint</c>
+/// and expects clients to register on the fly. So a <c>ClientId</c> is <b>optional</b>: when config
+/// supplies one we use it; otherwise the SDK performs RFC 7591 <b>dynamic client registration</b> and we
+/// persist the issued client via <paramref name="onClientRegistered"/> (its refresh token is bound to
+/// that client). Passing a <c>client_id</c> the server does not recognise is what surfaces as
+/// "client not found" on the authorize page — leaving it blank lets DCR mint a valid one.
+/// </para>
 /// </summary>
 public static class ProviderOAuth
 {
     /// <summary>The single OAuth scope Prism requests — a refresh token for headless reuse (SEC-07).</summary>
     public static readonly IReadOnlyList<string> Scopes = new[] { "offline_access" };
 
+    /// <summary>Human-readable client name sent during dynamic client registration (shown at consent).</summary>
+    public const string DynamicClientName = "Prism Rating Reconciler";
+
     /// <summary>
     /// Assembles <see cref="ClientOAuthOptions"/>. Fails <b>loud</b> (<see cref="ConfigurationException"/>)
-    /// when the provider is enabled but has no <c>ClientId</c> or a bad redirect URI (P1). The
-    /// <paramref name="redirect"/> is interactive (CLI login) or the headless throwing delegate
-    /// (<see cref="HeadlessRedirect"/>) at runtime.
+    /// on a bad redirect URI (P1). The <paramref name="redirect"/> is interactive (CLI login) or the
+    /// headless throwing delegate (<see cref="HeadlessRedirect"/>) at runtime.
+    /// <para>
+    /// Client resolution order: an explicit config <c>ClientId</c> → a <paramref name="persistedClient"/>
+    /// from a prior dynamic registration → otherwise RFC 7591 dynamic client registration (the SDK POSTs
+    /// to the discovered <c>registration_endpoint</c>, and <paramref name="onClientRegistered"/> persists
+    /// the result for reuse).
+    /// </para>
     /// </summary>
     public static ClientOAuthOptions BuildOptions(
         ProviderMcpKey provider,
         PrismOptions.ProviderMcpOptions options,
         ITokenCache tokenCache,
-        AuthorizationRedirectDelegate redirect)
+        AuthorizationRedirectDelegate redirect,
+        RegisteredClient? persistedClient = null,
+        Func<DynamicClientRegistrationResponse, CancellationToken, Task>? onClientRegistered = null)
     {
         ArgumentNullException.ThrowIfNull(options);
         ArgumentNullException.ThrowIfNull(tokenCache);
         ArgumentNullException.ThrowIfNull(redirect);
 
-        if (string.IsNullOrWhiteSpace(options.ClientId))
-        {
-            throw new ConfigurationException(
-                $"{ProviderMcpEndpointGuard.SettingPrefix(provider)}:ClientId",
-                $"{provider} is enabled but has no OAuth ClientId configured.");
-        }
-
         var redirectUri = ProviderMcpEndpointGuard.EnsureLoopbackRedirect(provider, options.RedirectUri);
 
-        return new ClientOAuthOptions
+        // Prefer an explicitly configured client; otherwise fall back to a client previously minted by
+        // dynamic client registration. A blank secret is a public client — pass null, never an empty string.
+        var configuredClientId = string.IsNullOrWhiteSpace(options.ClientId) ? null : options.ClientId;
+        var effectiveClientId = configuredClientId ?? persistedClient?.ClientId;
+        var effectiveClientSecret = configuredClientId is not null
+            ? (string.IsNullOrWhiteSpace(options.ClientSecret) ? null : options.ClientSecret)
+            : persistedClient?.ClientSecret;
+
+        var oauthOptions = new ClientOAuthOptions
         {
-            ClientId = options.ClientId,
-            // A blank secret is a public client (e.g. CIMD) — pass null, never an empty-string secret.
-            ClientSecret = string.IsNullOrWhiteSpace(options.ClientSecret) ? null : options.ClientSecret,
+            ClientId = effectiveClientId,
+            ClientSecret = effectiveClientSecret,
             RedirectUri = redirectUri,
             Scopes = Scopes,
             TokenCache = tokenCache,
             AuthorizationRedirectDelegate = redirect,
             AuthServerSelector = GuardedAuthServerSelector(provider),
         };
+
+        // No client_id available → let the SDK register dynamically (RFC 7591) against the provider's
+        // advertised registration_endpoint, and persist the issued client so later runs / headless
+        // refreshes present the same client the refresh token is bound to.
+        if (effectiveClientId is null)
+        {
+            oauthOptions.DynamicClientRegistration = new DynamicClientRegistrationOptions
+            {
+                ClientName = DynamicClientName,
+                // Some registration endpoints gate /register behind a bearer; supply it only if configured.
+                InitialAccessToken = string.IsNullOrWhiteSpace(options.RegistrationAccessToken)
+                    ? null
+                    : options.RegistrationAccessToken,
+                ResponseDelegate = onClientRegistered,
+            };
+        }
+
+        return oauthOptions;
     }
 
     /// <summary>

@@ -74,6 +74,48 @@ public sealed class ReconciliationScoringTests
         ReconciliationScoring.ConsensusSummary(Array.Empty<ProviderRating>()).Should().Be("no coverage");
     }
 
+    // ── R7 — penalties are de-duplicated by flag code ───────────────────────────────────────────────
+
+    [Fact]
+    public void ConfidenceScore_MultipleSameCodeFlags_PenalizedOnce()
+    {
+        // Full coverage (3/3) and TWO per-pair METHODOLOGY_CONFLICT flags. The old sum-per-flag formula
+        // would subtract 0.30 (2 × 0.15); de-duplicated by code it subtracts 0.15 once ⇒ 0.85.
+        var ratings = new[]
+        {
+            Rating(Provider.Moodys, 6),
+            Rating(Provider.MorningstarDbrs, 9),
+            Rating(Provider.Msci, 12),
+        };
+        var flags = new[]
+        {
+            new RedFlag("METHODOLOGY_CONFLICT", "medium", "a", "", Array.Empty<string>()),
+            new RedFlag("METHODOLOGY_CONFLICT", "medium", "b", "", Array.Empty<string>()),
+        };
+
+        ReconciliationScoring.ConfidenceScore(ratings, flags).Should().BeApproximately(0.85, 1e-9);
+    }
+
+    [Fact]
+    public void ConfidenceScore_DistinctCodes_PenalizedPerCode_WorstSeverity()
+    {
+        // One high (STALE) + two medium (CONFLICT) over full coverage: 1.0 − 0.30 − 0.15 = 0.55.
+        var ratings = new[]
+        {
+            Rating(Provider.Moodys, 6),
+            Rating(Provider.MorningstarDbrs, 9),
+            Rating(Provider.Msci, 12),
+        };
+        var flags = new[]
+        {
+            new RedFlag("STALE_INPUT", "high", "s", "", Array.Empty<string>()),
+            new RedFlag("METHODOLOGY_CONFLICT", "medium", "a", "", Array.Empty<string>()),
+            new RedFlag("METHODOLOGY_CONFLICT", "medium", "b", "", Array.Empty<string>()),
+        };
+
+        ReconciliationScoring.ConfidenceScore(ratings, flags).Should().BeApproximately(0.55, 1e-9);
+    }
+
     private static ProviderRating Rating(Provider provider, int notch) =>
         new(provider, "n/a", notch, Anchor, Anchor, Array.Empty<RatingFactor>(), $"method:{provider}");
 }

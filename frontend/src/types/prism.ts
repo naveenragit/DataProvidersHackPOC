@@ -18,12 +18,17 @@ export type Bucket = 'Weighting' | 'Input' | 'MethodologyAdjustment'
 /** Deterministic red-flag codes emitted by the RedFlagEngine. */
 export type RedFlagCode =
   | 'STALE_INPUT'
+  | 'IG_HY_BOUNDARY'
   | 'MISSING_COVERAGE'
   | 'OUTLIER_PROVIDER'
+  | 'PROVIDER_UNDER_REVIEW'
   | 'METHODOLOGY_CONFLICT'
 
 /** Red-flag severity. */
 export type Severity = 'high' | 'medium' | 'low'
+
+/** Forward-looking rating outlook (direction, not level). Mirrors the C# `RatingOutlook` enum. */
+export type RatingOutlook = 'Unknown' | 'Positive' | 'Stable' | 'Negative' | 'Developing'
 
 /** A corporate-bond issuer in the reconciliation cast (list projection). */
 export interface IssuerListItem {
@@ -47,6 +52,10 @@ export interface ProviderVerdictDto {
   /** ISO 8601 date-time — date of the financials the rating is built on (drives STALE_INPUT). */
   inputAsOfDate: string
   methodologyDocId: string
+  /** Forward-looking outlook; 'Unknown' when the source did not supply one. */
+  outlook: RatingOutlook
+  /** True when the provider has the issuer on CreditWatch / under review. */
+  underReview: boolean
 }
 
 /** One attribution bucket's signed contribution to a provider pair's notch gap. */
@@ -105,4 +114,43 @@ export interface ApiErrorBody {
     message: string
     details?: unknown
   }
+}
+
+// ── Live market-context enrichment (Morningstar) ────────────────────────────────────────
+// A CONTEXT-ONLY side feature (live Morningstar analyst research for a real listed security),
+// deliberately separate from the rating reconciliation above and never a buy/sell/hold view (P4).
+// Mirrors Models/MarketContextDtos.cs. Every status is a 200 the panel can render (fail-soft).
+
+/** Outcome of a live Morningstar lookup (C# `MarketContextStatus` member names). */
+export type MarketContextStatus = 'Ok' | 'NotCovered' | 'Disabled' | 'ReloginRequired' | 'Unavailable'
+
+/** The security Morningstar matched an identifier to. */
+export interface MarketContextInvestment {
+  morningstarId: string
+  name: string
+  ticker: string | null
+  investmentType: string | null
+  exchange: string | null
+}
+
+/** One attributed Morningstar analyst-research section. */
+export interface MarketContextSection {
+  title: string
+  /** ISO 8601 date-time, or null. */
+  publishedAt: string | null
+  excerpt: string
+  url: string | null
+}
+
+/** Payload for the live-Morningstar context panel (GET /api/v1/market-context/morningstar). */
+export interface MorningstarContextResponse {
+  identifier: string
+  status: MarketContextStatus
+  message: string
+  investment: MarketContextInvestment | null
+  sections: MarketContextSection[]
+  sourceProvider: string
+  /** ISO 8601 date-time when retrieved, or null for non-Ok states. */
+  retrievedAt: string | null
+  disclaimer: string
 }

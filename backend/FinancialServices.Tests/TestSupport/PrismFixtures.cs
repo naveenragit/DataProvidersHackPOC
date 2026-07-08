@@ -42,7 +42,9 @@ internal static class PrismFixtures
         DateTimeOffset inputAsOf,
         DateTimeOffset? asOf = null,
         IReadOnlyList<RatingFactor>? factors = null,
-        string? methodologyDocId = null) =>
+        string? methodologyDocId = null,
+        RatingOutlook outlook = RatingOutlook.Unknown,
+        bool underReview = false) =>
         new(
             provider,
             letter,
@@ -50,7 +52,9 @@ internal static class PrismFixtures
             asOf ?? inputAsOf,
             inputAsOf,
             factors ?? Array.Empty<RatingFactor>(),
-            methodologyDocId ?? $"method:{provider}");
+            methodologyDocId ?? $"method:{provider}",
+            outlook,
+            underReview);
 
     // ── NordStar: Q3 filing on 2025-11-05. MSCI's input predates it (STALE_INPUT money moment);   ──
     // ── Moody's + DBRS are fresh. Notches {9, 9, 10}: a consensus with one stale card, no outlier. ──
@@ -168,4 +172,35 @@ internal static class PrismFixtures
 
     public static FundamentalSnapshot LetterOnlyLatest() =>
         Snapshot("letter-only", D(2025, 11, 5), debtToEbitda: 3.0m);
+
+    // ── IG/HY straddle (R1): Moody's BBB-/notch 10 (IG) + DBRS BB (high)/notch 11 (HY) + MSCI BBB/notch ──
+    // ── 9 (IG). The set has both an IG and an HY provider ⇒ exactly one IG_HY_BOUNDARY (high). All fresh ──
+    // ── (no STALE) and median-distance ≤ 1 (no OUTLIER), so IG_HY stands alone.                          ──
+    public static Issuer IgHyStraddleIssuer() =>
+        Issuer("meridian", "Meridian Freight Corp.", "MRDF", "0000045012");
+
+    public static FundamentalSnapshot IgHyStraddleLatest() =>
+        Snapshot("meridian", D(2025, 11, 5), "10-Q", debtToEbitda: 3.5m);
+
+    public static IReadOnlyList<ProviderRating> IgHyStraddleRatings() => new[]
+    {
+        Rating(Provider.Moodys, "Baa3", inputAsOf: D(2025, 11, 10)),              // notch 10, IG floor
+        Rating(Provider.MorningstarDbrs, "BB (high)", inputAsOf: D(2025, 11, 9)), // notch 11, HY
+        Rating(Provider.Msci, "BBB", inputAsOf: D(2025, 11, 8)),                  // notch 9, IG
+    };
+
+    // ── Under review (R6): three fresh, consensus IG ratings, but MSCI is on CreditWatch ⇒ exactly one ──
+    // ── PROVIDER_UNDER_REVIEW (low). No STALE / OUTLIER / IG_HY.                                         ──
+    public static Issuer UnderReviewIssuer() =>
+        Issuer("beacon", "Beacon Retail Group Inc.", "BCNR", "0000056023");
+
+    public static FundamentalSnapshot UnderReviewLatest() =>
+        Snapshot("beacon", D(2025, 11, 5), "10-Q", debtToEbitda: 2.8m);
+
+    public static IReadOnlyList<ProviderRating> UnderReviewRatings() => new[]
+    {
+        Rating(Provider.Moodys, "A2", inputAsOf: D(2025, 11, 10)),                            // notch 6, fresh
+        Rating(Provider.MorningstarDbrs, "A (mid)", inputAsOf: D(2025, 11, 11)),              // notch 6, fresh
+        Rating(Provider.Msci, "A", inputAsOf: D(2025, 11, 12), outlook: RatingOutlook.Negative, underReview: true),
+    };
 }

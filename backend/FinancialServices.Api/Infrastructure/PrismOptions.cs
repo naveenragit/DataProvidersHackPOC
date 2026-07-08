@@ -105,11 +105,22 @@ public sealed class PrismOptions
         /// <summary>The hosted MCP endpoint (Streamable HTTP). Host-allowlisted at use (SSRF, SEC-03).</summary>
         public string? McpUrl { get; init; }
 
-        /// <summary>Pre-registered OAuth <c>client_id</c> (public identifier — not a secret).</summary>
+        /// <summary>
+        /// OAuth <c>client_id</c> (public identifier — not a secret). <b>Optional</b>: leave blank for
+        /// hosted MCP servers that use RFC 7591 dynamic client registration (the SDK mints one on the
+        /// fly). Supplying an id the server does not recognise surfaces as "client not found".
+        /// </summary>
         public string? ClientId { get; init; }
 
-        /// <summary>Pre-registered OAuth <c>client_secret</c> (P6 — never logged, never committed).</summary>
+        /// <summary>OAuth <c>client_secret</c> (P6 — never logged, never committed). Optional / blank for public clients.</summary>
         public string? ClientSecret { get; init; }
+
+        /// <summary>
+        /// Optional initial access token (bearer) presented during dynamic client registration, for
+        /// providers whose <c>registration_endpoint</c> does not allow anonymous registration (P6 — never
+        /// logged). Only used when <see cref="ClientId"/> is blank.
+        /// </summary>
+        public string? RegistrationAccessToken { get; init; }
 
         /// <summary>The allow-listed loopback redirect (default <c>http://localhost:8765/callback</c>).</summary>
         public string? RedirectUri { get; init; }

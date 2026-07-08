@@ -17,6 +17,8 @@ export const nordstarDossier: DossierResponse = {
       asOfDate: '2025-11-11T19:00:00-05:00',
       inputAsOfDate: '2025-11-11T19:00:00-05:00',
       methodologyDocId: 'nordstar-moodys',
+      outlook: 'Unknown',
+      underReview: false,
     },
     {
       provider: 'MorningstarDbrs',
@@ -25,6 +27,8 @@ export const nordstarDossier: DossierResponse = {
       asOfDate: '2025-11-13T19:00:00-05:00',
       inputAsOfDate: '2025-11-13T19:00:00-05:00',
       methodologyDocId: 'nordstar-morningstardbrs',
+      outlook: 'Unknown',
+      underReview: false,
     },
     {
       provider: 'Msci',
@@ -33,6 +37,8 @@ export const nordstarDossier: DossierResponse = {
       asOfDate: '2025-09-14T20:00:00-04:00',
       inputAsOfDate: '2025-09-14T20:00:00-04:00',
       methodologyDocId: 'nordstar-msci',
+      outlook: 'Unknown',
+      underReview: false,
     },
   ],
   divergences: [
@@ -86,9 +92,9 @@ export const cedarGroveDossier: DossierResponse = {
   issuerId: 'cedargrove',
   asOf: '2026-07-06T00:00:00-04:00',
   verdicts: [
-    { provider: 'Moodys', letter: 'A2', notch: 6, asOfDate: '2025-11-11T19:00:00-05:00', inputAsOfDate: '2025-11-11T19:00:00-05:00', methodologyDocId: 'cedargrove-moodys' },
-    { provider: 'MorningstarDbrs', letter: 'A (mid)', notch: 6, asOfDate: '2025-11-13T19:00:00-05:00', inputAsOfDate: '2025-11-13T19:00:00-05:00', methodologyDocId: 'cedargrove-morningstardbrs' },
-    { provider: 'Msci', letter: 'A', notch: 6, asOfDate: '2025-11-10T19:00:00-05:00', inputAsOfDate: '2025-11-10T19:00:00-05:00', methodologyDocId: 'cedargrove-msci' },
+    { provider: 'Moodys', letter: 'A2', notch: 6, asOfDate: '2025-11-11T19:00:00-05:00', inputAsOfDate: '2025-11-11T19:00:00-05:00', methodologyDocId: 'cedargrove-moodys', outlook: 'Unknown', underReview: false },
+    { provider: 'MorningstarDbrs', letter: 'A (mid)', notch: 6, asOfDate: '2025-11-13T19:00:00-05:00', inputAsOfDate: '2025-11-13T19:00:00-05:00', methodologyDocId: 'cedargrove-morningstardbrs', outlook: 'Unknown', underReview: false },
+    { provider: 'Msci', letter: 'A', notch: 6, asOfDate: '2025-11-10T19:00:00-05:00', inputAsOfDate: '2025-11-10T19:00:00-05:00', methodologyDocId: 'cedargrove-msci', outlook: 'Unknown', underReview: false },
   ],
   divergences: [
     { a: 'Moodys', b: 'MorningstarDbrs', notchGap: 0, attribution: [
@@ -108,8 +114,8 @@ export const asterBioDossier: DossierResponse = {
   issuerId: 'asterbio',
   asOf: '2026-07-06T00:00:00-04:00',
   verdicts: [
-    { provider: 'Moodys', letter: 'Ba2', notch: 12, asOfDate: '2025-11-11T19:00:00-05:00', inputAsOfDate: '2025-11-11T19:00:00-05:00', methodologyDocId: 'asterbio-moodys' },
-    { provider: 'MorningstarDbrs', letter: 'BB (mid)', notch: 12, asOfDate: '2025-11-13T19:00:00-05:00', inputAsOfDate: '2025-11-13T19:00:00-05:00', methodologyDocId: 'asterbio-morningstardbrs' },
+    { provider: 'Moodys', letter: 'Ba2', notch: 12, asOfDate: '2025-11-11T19:00:00-05:00', inputAsOfDate: '2025-11-11T19:00:00-05:00', methodologyDocId: 'asterbio-moodys', outlook: 'Unknown', underReview: false },
+    { provider: 'MorningstarDbrs', letter: 'BB (mid)', notch: 12, asOfDate: '2025-11-13T19:00:00-05:00', inputAsOfDate: '2025-11-13T19:00:00-05:00', methodologyDocId: 'asterbio-morningstardbrs', outlook: 'Unknown', underReview: false },
   ],
   divergences: [
     { a: 'Moodys', b: 'MorningstarDbrs', notchGap: 0, attribution: [
@@ -131,9 +137,9 @@ export const onyxDossier: DossierResponse = {
   issuerId: 'onyx',
   asOf: '2026-07-06T00:00:00-04:00',
   verdicts: [
-    { provider: 'Moodys', letter: 'A2', notch: 6, asOfDate: '2025-11-11T19:00:00-05:00', inputAsOfDate: '2025-11-11T19:00:00-05:00', methodologyDocId: 'onyx-moodys' },
-    { provider: 'MorningstarDbrs', letter: 'A (mid)', notch: 6, asOfDate: '2025-11-13T19:00:00-05:00', inputAsOfDate: '2025-11-13T19:00:00-05:00', methodologyDocId: 'onyx-morningstardbrs' },
-    { provider: 'Msci', letter: 'BBB-', notch: 10, asOfDate: '2025-11-10T19:00:00-05:00', inputAsOfDate: '2025-11-10T19:00:00-05:00', methodologyDocId: 'onyx-msci' },
+    { provider: 'Moodys', letter: 'A2', notch: 6, asOfDate: '2025-11-11T19:00:00-05:00', inputAsOfDate: '2025-11-11T19:00:00-05:00', methodologyDocId: 'onyx-moodys', outlook: 'Unknown', underReview: false },
+    { provider: 'MorningstarDbrs', letter: 'A (mid)', notch: 6, asOfDate: '2025-11-13T19:00:00-05:00', inputAsOfDate: '2025-11-13T19:00:00-05:00', methodologyDocId: 'onyx-morningstardbrs', outlook: 'Unknown', underReview: false },
+    { provider: 'Msci', letter: 'BBB-', notch: 10, asOfDate: '2025-11-10T19:00:00-05:00', inputAsOfDate: '2025-11-10T19:00:00-05:00', methodologyDocId: 'onyx-msci', outlook: 'Unknown', underReview: false },
   ],
   divergences: [
     { a: 'Moodys', b: 'MorningstarDbrs', notchGap: 0, attribution: [

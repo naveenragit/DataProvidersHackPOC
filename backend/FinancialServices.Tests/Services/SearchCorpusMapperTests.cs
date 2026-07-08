@@ -71,6 +71,54 @@ public sealed class SearchCorpusMapperTests
     }
 
     [Fact]
+    public void MapCards_drops_non_grade_cards_instead_of_crashing()
+    {
+        // R2: a withdrawn (WR) / not-rated (NR) card is a real feed state — it must NOT throw. The
+        // provider is simply dropped from the ratings (surfacing as MISSING_COVERAGE downstream), while
+        // a decorated grade (outlook suffix) still resolves.
+        var cards = new[]
+        {
+            new SearchCorpusRow { Provider = "Moodys", Letter = "Baa2", AsOfDate = D(2025, 10, 1) },
+            new SearchCorpusRow { Provider = "MorningstarDbrs", Letter = "WR", AsOfDate = D(2025, 10, 1) },  // withdrawn
+            new SearchCorpusRow { Provider = "Msci", Letter = "BBB- (Negative)", AsOfDate = D(2025, 10, 1) }, // decorated
+        };
+
+        IReadOnlyList<ProviderRating> mapped = SearchCorpusMapper.MapCards(cards, asOf: D(2025, 10, 15));
+
+        mapped.Select(r => r.Provider).Should().Equal(Provider.Moodys, Provider.Msci); // DBRS (WR) dropped
+        mapped.Single(r => r.Provider == Provider.Msci).Notch.Should().Be(10);         // BBB- resolved
+    }
+
+    [Fact]
+    public void ToProviderRatingOrNull_returns_null_for_a_non_grade_status()
+    {
+        var card = new SearchCorpusRow { Provider = "Moodys", Letter = "NR", AsOfDate = D(2025, 10, 1) };
+
+        SearchCorpusMapper.ToProviderRatingOrNull(card).Should().BeNull();
+        SearchCorpusMapper.IsGradedCard(card).Should().BeFalse();
+    }
+
+    [Fact]
+    public void ToProviderRating_maps_outlook_and_under_review_from_the_row()
+    {
+        // R6/STK-07: when the corpus supplies an outlook / CreditWatch, it flows end-to-end. A blank or
+        // unrecognized outlook is a normal absent state (Unknown), never an upstream fault.
+        var card = new SearchCorpusRow
+        {
+            Provider = "Msci", Letter = "BBB-", AsOfDate = D(2025, 10, 1),
+            Outlook = "Negative", UnderReview = true,
+        };
+
+        ProviderRating rating = SearchCorpusMapper.ToProviderRating(card);
+        rating.Outlook.Should().Be(RatingOutlook.Negative);
+        rating.UnderReview.Should().BeTrue();
+
+        var blank = new SearchCorpusRow { Provider = "Moodys", Letter = "Baa2", AsOfDate = D(2025, 10, 1) };
+        SearchCorpusMapper.ToProviderRating(blank).Outlook.Should().Be(RatingOutlook.Unknown);
+        SearchCorpusMapper.ToProviderRating(blank).UnderReview.Should().BeFalse();
+    }
+
+    [Fact]
     public void ToIssuerEntry_maps_metadata_boundary_and_coverage()
     {
         var row = new SearchCorpusRow

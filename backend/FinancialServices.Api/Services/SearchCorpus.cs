@@ -50,6 +50,7 @@ public sealed class SearchCorpus(SearchClient client, ILogger<SearchCorpus> logg
         IReadOnlyList<SearchCorpusRow> cardRows =
             await QueryAsync($"docType eq 'ratingCard' and issuerId eq '{escaped}'", ct);
         Provider[] providers = cardRows
+            .Where(SearchCorpusMapper.IsGradedCard) // R2: a non-grade (NR/WR/…) card is not coverage.
             .Select(card => SearchCorpusMapper.ParseProvider(card.Provider))
             .Distinct()
             .OrderBy(provider => (int)provider)
@@ -66,7 +67,21 @@ public sealed class SearchCorpus(SearchClient client, ILogger<SearchCorpus> logg
         IReadOnlyList<SearchCorpusRow> cardRows =
             await QueryAsync($"docType eq 'ratingCard' and issuerId eq '{Escape(issuerId)}'", ct);
 
-        return SearchCorpusMapper.MapCards(cardRows, asOf);
+        IReadOnlyList<ProviderRating> mapped = SearchCorpusMapper.MapCards(cardRows, asOf);
+
+        // R2/arch-07 observability: a non-grade (NR/WR/D/SD/RD) card is dropped and surfaces as
+        // MISSING_COVERAGE downstream. Log the count (ids only, no PII) so operators can tell a
+        // data-quality event apart from a provider that genuinely never rated the issuer.
+        int eligible = cardRows.Count(card => card.AsOfDate <= asOf);
+        int dropped = eligible - mapped.Count;
+        if (dropped > 0)
+        {
+            logger.LogInformation(
+                "Dropped {Dropped} non-grade rating card(s) for issuer {IssuerId} as of {AsOf:yyyy-MM-dd} — surfaced as MISSING_COVERAGE.",
+                dropped, issuerId, asOf);
+        }
+
+        return mapped;
     }
 
     // Group the rating cards into an issuerId → distinct provider-set map (issuer coverage).
@@ -75,6 +90,11 @@ public sealed class SearchCorpus(SearchClient client, ILogger<SearchCorpus> logg
         var coverage = new Dictionary<string, List<Provider>>(StringComparer.Ordinal);
         foreach (SearchCorpusRow card in cardRows)
         {
+            if (!SearchCorpusMapper.IsGradedCard(card))
+            {
+                continue; // R2: a non-grade (NR/WR/…) card is not coverage — it surfaces as MISSING_COVERAGE.
+            }
+
             Provider provider = SearchCorpusMapper.ParseProvider(card.Provider);
             if (!coverage.TryGetValue(card.IssuerId, out List<Provider>? providers))
             {

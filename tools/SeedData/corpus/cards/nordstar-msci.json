@@ -13,6 +13,6 @@
     { "name": "InterestCoverage", "weight": 0.30, "score": 55, "sourceRef": "nordstar-fin-q2" },
     { "name": "SectorEsgOverlay", "weight": 0.30, "score": 48, "sourceRef": "msci-methodology" }
   ],
-  "content": "Illustrative MSCI-style issuer credit assessment for NordStar Industrials. This assessment rests on NordStar's Q2 fundamentals as of 2025-08-20 and a rating action dated 2025-09-15 — both predating NordStar's Q3 10-Q filed 2025-11-05. Because the leverage input reflects the higher pre-deleveraging Q2 debt load, this assessment lands one notch weaker (BBB-) than the two anchor providers that acted on the fresher Q3 data. The divergence is a freshness artifact of the leverage input, not a fundamental disagreement about NordStar's credit.",
+  "content": "Illustrative MSCI-style issuer credit assessment for General Electric Company. This assessment rests on GE's Q2 fundamentals as of 2025-08-20 and a rating action dated 2025-09-15 — both predating GE's Q3 10-Q filed 2025-11-05. Because the leverage input reflects the higher pre-deleveraging Q2 debt load, this assessment lands one notch weaker (BBB-) than the two anchor providers that acted on the fresher Q3 data. The divergence is a freshness artifact of the leverage input, not a fundamental disagreement about GE's credit.",
   "disclaimer": "Synthetic, illustrative — not MSCI data."
 }

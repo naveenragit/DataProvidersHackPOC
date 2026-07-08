@@ -32,33 +32,33 @@ public static class ReconciliationScoring
 
     /// <summary>
     /// Confidence in <c>[0, 1]</c>: coverage (rated providers ÷ total providers) minus severity
-    /// penalties (<c>high 0.30 / medium 0.15 / low 0.05</c>), clamped. <c>MISSING_COVERAGE</c> flags are
-    /// excluded from the penalty — the coverage fraction already reflects them (no double-counting).
+    /// penalties (<c>high 0.30 / medium 0.15 / low 0.05</c>), clamped. Penalties are de-duplicated by
+    /// flag <b>code</b> (R7) using the highest severity seen for that code, so N per-pair
+    /// <c>METHODOLOGY_CONFLICT</c> flags — or both ends of an <c>OUTLIER</c> spread — count once, not N
+    /// times; confidence tracks the <i>kinds</i> of problem, not the provider count. <c>MISSING_COVERAGE</c>
+    /// is excluded from the penalty — the coverage fraction already reflects it (no double-counting).
     /// Full fresh consensus ⇒ <c>1.0</c>; one high flag over full coverage ⇒ <c>0.70</c>.
     /// </summary>
     public static double ConfidenceScore(IReadOnlyList<ProviderRating> ratings, IReadOnlyList<RedFlag> flags)
     {
         double coverage = ratings.Count / (double)Enum.GetValues<Provider>().Length;
 
-        double penalty = 0.0;
-        foreach (RedFlag flag in flags)
-        {
+        double penalty = flags
             // MISSING_COVERAGE is already reflected in the coverage fraction above — excluding it here
             // avoids double-counting the same missing provider in both terms.
-            if (string.Equals(flag.Code, "MISSING_COVERAGE", StringComparison.Ordinal))
-            {
-                continue;
-            }
-
-            penalty += flag.Severity switch
-            {
-                "high" => 0.30,
-                "medium" => 0.15,
-                "low" => 0.05,
-                _ => 0.0,
-            };
-        }
+            .Where(flag => !string.Equals(flag.Code, "MISSING_COVERAGE", StringComparison.Ordinal))
+            // De-duplicate by code, keeping the worst severity for that code, then sum once per code.
+            .GroupBy(flag => flag.Code, StringComparer.Ordinal)
+            .Sum(group => group.Max(flag => SeverityPenalty(flag.Severity)));
 
         return Math.Clamp(coverage - penalty, 0.0, 1.0);
     }
+
+    private static double SeverityPenalty(string severity) => severity switch
+    {
+        "high" => 0.30,
+        "medium" => 0.15,
+        "low" => 0.05,
+        _ => 0.0,
+    };
 }

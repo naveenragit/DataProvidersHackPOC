@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { sortFlagsBySeverity } from '@/lib/prismFormat'
+import { describeEvidenceRef } from '@/lib/evidenceCatalog'
 import { RuleModal } from './RuleModal'
 import { SEVERITY_BADGE_CLASS, SEVERITY_BADGE_VARIANT, SEVERITY_LABEL } from './redFlagStyles'
 import type { RedFlagDto } from '@/types/prism'
@@ -58,9 +59,10 @@ export function RedFlagPanel({ flags }: RedFlagPanelProps) {
                     {flag.evidenceRefs.map((ref) => (
                       <span
                         key={ref}
-                        className="rounded border border-border bg-muted/40 px-1.5 py-0.5 font-mono text-[10px] text-muted-foreground"
+                        title={ref}
+                        className="rounded border border-border bg-muted/40 px-1.5 py-0.5 text-[10px] text-muted-foreground"
                       >
-                        {ref}
+                        {describeEvidenceRef(ref).label}
                       </span>
                     ))}
                   </div>

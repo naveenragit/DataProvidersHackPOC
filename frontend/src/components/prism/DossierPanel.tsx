@@ -10,9 +10,10 @@ import type { DossierResponse } from '@/types/prism'
 
 interface DossierPanelProps {
   dossier: DossierResponse
+  issuerName?: string
 }
 
-export function DossierPanel({ dossier }: DossierPanelProps) {
+export function DossierPanel({ dossier, issuerName }: DossierPanelProps) {
   function handleExport() {
     const url = `/api/v1/reconciliations/${encodeURIComponent(dossier.id)}/export`
     window.open(url, '_blank', 'noopener,noreferrer')
@@ -30,7 +31,7 @@ export function DossierPanel({ dossier }: DossierPanelProps) {
         <dl className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm sm:grid-cols-4">
           <div>
             <dt className="text-xs uppercase tracking-wide text-muted-foreground">Issuer</dt>
-            <dd className="font-mono text-foreground">{dossier.issuerId}</dd>
+            <dd className="text-foreground">{issuerName ?? dossier.issuerId}</dd>
           </div>
           <div>
             <dt className="text-xs uppercase tracking-wide text-muted-foreground">As-of</dt>

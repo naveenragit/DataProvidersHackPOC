@@ -17,7 +17,9 @@ public sealed record ProviderRatingRecord(
     DateTimeOffset AsOfDate,
     DateTimeOffset RatingActionDate,
     IReadOnlyList<RatingFactor> Factors,
-    string SourceRef)
+    string SourceRef,
+    RatingOutlook Outlook = RatingOutlook.Unknown,
+    bool UnderReview = false)
 {
     /// <summary>
     /// The single, tested conversion to the domain <see cref="ProviderRating"/> (pkg 05 must go through
@@ -34,7 +36,9 @@ public sealed record ProviderRatingRecord(
             AsOfDate: AsOfDate,
             InputAsOfDate: RatingActionDate,
             Factors: Factors,
-            MethodologyDocId: SourceRef);
+            MethodologyDocId: SourceRef,
+            Outlook: Outlook,
+            UnderReview: UnderReview);
 }
 
 /// <summary>

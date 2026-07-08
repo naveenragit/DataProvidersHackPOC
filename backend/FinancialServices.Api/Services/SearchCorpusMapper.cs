@@ -23,6 +23,11 @@ public sealed class SearchCorpusRow
     [JsonPropertyName("asOfDate")] public DateTimeOffset AsOfDate { get; init; }
     [JsonPropertyName("inputAsOfDate")] public DateTimeOffset InputAsOfDate { get; init; }
 
+    // Optional forward-looking direction (R6). Absent on older corpus rows ⇒ default (Unknown/false);
+    // populated, they drive the outlook badge and the PROVIDER_UNDER_REVIEW flag end-to-end.
+    [JsonPropertyName("outlook")] public string Outlook { get; init; } = "";
+    [JsonPropertyName("underReview")] public bool UnderReview { get; init; }
+
     // Issuer-only metadata + filing boundary (pkg-08 index extension; empty on ratingCard rows).
     [JsonPropertyName("legalName")] public string LegalName { get; init; } = "";
     [JsonPropertyName("ticker")] public string Ticker { get; init; } = "";
@@ -69,19 +74,56 @@ public static class SearchCorpusMapper
             AsOfDate: card.AsOfDate,
             InputAsOfDate: card.AsOfDate,
             Factors: Array.Empty<RatingFactor>(),
-            MethodologyDocId: card.Id);
+            MethodologyDocId: card.Id,
+            Outlook: ParseOutlook(card.Outlook),
+            UnderReview: card.UnderReview);
+
+    /// <summary>
+    /// Tolerant projection for the ingestion boundary (R2): like <see cref="ToProviderRating"/> but
+    /// returns <c>null</c> for a card whose letter is a non-grade status (<c>NR</c> / <c>WR</c> /
+    /// <c>D</c> / <c>SD</c> / <c>RD</c> / <c>LD</c>) or otherwise does not resolve to a point on the
+    /// ladder. A real provider feed emits these legitimately; dropping the card makes it surface as
+    /// MISSING_COVERAGE downstream instead of crashing the whole dossier (P1 — fail gracefully at the
+    /// boundary, never fabricate a notch). Grades carrying an outlook / CreditWatch decoration still
+    /// resolve (the decoration is stripped by <see cref="NotchLadder.TryToNotch"/>).
+    /// </summary>
+    public static ProviderRating? ToProviderRatingOrNull(SearchCorpusRow card) =>
+        NotchLadder.TryToNotch(card.Letter, out int notch)
+            ? new ProviderRating(
+                Provider: ParseProvider(card.Provider),
+                Letter: card.Letter,
+                Notch: notch,
+                AsOfDate: card.AsOfDate,
+                InputAsOfDate: card.AsOfDate,
+                Factors: Array.Empty<RatingFactor>(),
+                MethodologyDocId: card.Id,
+                Outlook: ParseOutlook(card.Outlook),
+                UnderReview: card.UnderReview)
+            : null;
 
     /// <summary>
     /// Filters rating-card rows to actions on or before <paramref name="asOf"/> (as-of correctness,
-    /// P3 — no hindsight), maps each to a <see cref="ProviderRating"/>, and orders by provider. Pure,
-    /// so the as-of gate is unit-testable without a live index.
+    /// P3 — no hindsight), maps each to a <see cref="ProviderRating"/>, <b>drops non-grade rows</b>
+    /// (R2 — NR/WR/D/SD/RD become coverage gaps, not crashes), and orders by provider. Pure, so the
+    /// as-of gate is unit-testable without a live index.
     /// </summary>
     public static IReadOnlyList<ProviderRating> MapCards(IEnumerable<SearchCorpusRow> cards, DateTimeOffset asOf) =>
         cards
             .Where(card => card.AsOfDate <= asOf)
-            .Select(ToProviderRating)
+            .Select(ToProviderRatingOrNull)
+            .Where(rating => rating is not null)
+            .Select(rating => rating!)
             .OrderBy(rating => (int)rating.Provider)
             .ToArray();
+
+    /// <summary>
+    /// True when a rating card carries a resolvable grade (R2). A card whose letter is a non-grade
+    /// status (<c>NR</c> / <c>WR</c> / <c>D</c> / <c>SD</c> / <c>RD</c> / <c>LD</c>) contributes no
+    /// comparable opinion, so it is excluded from both the ratings list and the issuer coverage set —
+    /// the provider then surfaces as MISSING_COVERAGE rather than a fabricated notch.
+    /// </summary>
+    public static bool IsGradedCard(SearchCorpusRow card) =>
+        NotchLadder.TryToNotch(card.Letter, out _);
 
     /// <summary>Maps an <c>issuer</c> row + its computed coverage to an <see cref="IssuerCorpusEntry"/>.</summary>
     public static IssuerCorpusEntry ToIssuerEntry(SearchCorpusRow issuerRow, IReadOnlyList<Provider> coverage)
@@ -107,4 +149,14 @@ public static class SearchCorpusMapper
             ? provider
             : throw new UpstreamServiceException(
                 "Search", $"Unrecognized provider '{value}' in the ratings corpus.");
+
+    /// <summary>
+    /// Parses an optional outlook label (R6) to <see cref="RatingOutlook"/>. Blank or unrecognized ⇒
+    /// <see cref="RatingOutlook.Unknown"/> — an absent outlook is a normal, honest state (P1), not an
+    /// upstream fault, so unlike <see cref="ParseProvider"/> it never throws.
+    /// </summary>
+    public static RatingOutlook ParseOutlook(string? value) =>
+        Enum.TryParse(value, ignoreCase: true, out RatingOutlook outlook)
+            ? outlook
+            : RatingOutlook.Unknown;
 }

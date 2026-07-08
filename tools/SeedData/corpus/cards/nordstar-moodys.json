@@ -14,6 +14,6 @@
     { "name": "BusinessRisk", "weight": 0.25, "score": 60, "sourceRef": "moodys-methodology" },
     { "name": "FinancialPolicy", "weight": 0.20, "score": 58, "sourceRef": "moodys-methodology" }
   ],
-  "content": "Illustrative Moody's-style issuer credit assessment for NordStar Industrials, dated 2025-11-12 on the issuer's Q3 fundamentals as of 2025-09-30. The updated leverage input reflects NordStar's Q3 deleveraging, so this assessment sits at Baa2 — one notch stronger than the stale MSCI view. Interest coverage improved alongside the lower Debt/EBITDA leverage ratio. This is a fresh-input anchor for the NordStar reconciliation.",
+  "content": "Illustrative Moody's-style issuer credit assessment for General Electric Company, dated 2025-11-12 on the issuer's Q3 fundamentals as of 2025-09-30. The updated leverage input reflects GE's Q3 deleveraging, so this assessment sits at Baa2 — one notch stronger than the stale MSCI view. Interest coverage improved alongside the lower Debt/EBITDA leverage ratio. This is a fresh-input anchor for the General Electric reconciliation.",
   "disclaimer": "Synthetic, illustrative — not Moody's data."
 }
