@@ -241,6 +241,47 @@
   .sev.med  { background: rgba(217,119,6,.18); color: #f0b06b; border: 1px solid rgba(217,119,6,.5); }
   .sev.low  { background: rgba(126,231,135,.14); color: #9fe0a8; border: 1px solid rgba(126,231,135,.4); }
 
+  /* ---------- Fabric data foundation flow ---------- */
+  :root { --fabric: #117865; --fabric-bg: #e8f5f1; --fabric-border: #bfe3d8; }
+  .fabricflow {
+    display: grid; flex: 1; min-height: 0;
+    grid-template-columns: 0.92fr 22px 1.02fr 22px 1.5fr 22px 0.92fr;
+    gap: 0; align-items: stretch;
+  }
+  .fcol {
+    background: #fff; border: 1px solid var(--border); border-radius: 14px;
+    box-shadow: var(--shadow); display: flex; flex-direction: column; overflow: hidden;
+  }
+  .fcol.teal { border-color: var(--fabric-border); background: linear-gradient(180deg, #fdfefe, var(--fabric-bg)); }
+  .fhead {
+    font-size: 11.5px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase;
+    color: #fff; background: var(--ink); padding: 9px 12px; text-align: center;
+  }
+  .fcol.teal .fhead { background: var(--fabric); }
+  .fbody { padding: 10px; display: flex; flex-direction: column; gap: 7px; flex: 1; }
+  .fitem {
+    font-size: 12.5px; font-weight: 600; color: var(--ink-soft);
+    background: var(--bg); border: 1px solid var(--border-2); border-radius: 8px;
+    padding: 7px 10px; line-height: 1.3;
+  }
+  .fitem small { display: block; font-size: 10.5px; font-weight: 500; color: var(--muted-2); margin-top: 1px; }
+  .fcol.teal .fitem { background: #fff; border-color: var(--fabric-border); }
+  .fitem.det { background: var(--ink); color: #fff; border-color: var(--ink); }
+  .fitem.det small { color: #9fb3cc; }
+  .farrow { align-self: center; text-align: center; color: var(--fabric); font-size: 17px; font-weight: 800; }
+  .medals { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+  .medal { border-radius: 8px; padding: 6px 4px 5px; text-align: center; color: #fff; }
+  .medal .mname { font-size: 10.5px; font-weight: 800; letter-spacing: .09em; text-transform: uppercase; }
+  .medal .mdesc { font-size: 9.5px; font-weight: 600; opacity: .92; margin-top: 1px; }
+  .medal.bronze { background: #b45309; }
+  .medal.silver { background: #6b7280; }
+  .medal.gold { background: #b8860b; }
+  .onelake {
+    margin-top: auto; background: var(--ink); color: #dbe7f5; border-radius: 8px;
+    padding: 8px 10px; font-size: 11.5px; font-weight: 700; text-align: center;
+  }
+  .onelake b { color: #7ee787; }
+
   /* ---------- Rubric ---------- */
   .rubric { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
   .rcard { background: #fff; border: 1px solid var(--border); border-radius: 12px; padding: 15px 16px; box-shadow: var(--shadow); }
@@ -357,7 +398,7 @@
 <body>
   <div class="deck" id="deck">
     <div class="progress"><div class="bar" id="bar"></div></div>
-    <div class="counter" id="counter" title="Jump to slide">01 / 12</div>
+    <div class="counter" id="counter" title="Jump to slide">01 / 11</div>
 
     <!-- 1. TITLE -->
     <section class="slide active title-slide">
@@ -373,11 +414,12 @@
         drivers, and shows — with citations — <b>which verdict is stale and why.</b>
       </p>
       <div class="chips">
-        <span class="chip spectrum">Azure AI Foundry · GPT-5</span>
-        <span class="chip">Microsoft Agent Framework (.NET)</span>
-        <span class="chip">CopilotKit · AG-UI</span>
-        <span class="chip">Azure AI Search · Cosmos DB</span>
-        <span class="chip accent">Deterministic C# core</span>
+        <span class="chip spectrum">Team · Data Providers</span>
+        <span class="chip">Haris</span>
+        <span class="chip">Bahadir</span>
+        <span class="chip">Petar</span>
+        <span class="chip">Naveen</span>
+        <span class="chip">Pratik</span>
       </div>
     </section>
 
@@ -425,14 +467,14 @@
       <div class="slide-head">
         <div class="eyebrow">Proposed Solution &amp; Value</div>
         <h2>Prism — an agent team that reconciles the disagreement</h2>
-        <p class="sub">Give it one issuer and an as-of date. Prism returns a cited reconciliation dossier in seconds.</p>
+        <p class="sub">Give it one issuer and an as-of date. Prism returns a cited reconciliation report in seconds.</p>
       </div>
       <div class="grid g3" style="margin-bottom:12px">
         <div class="card"><div class="num">1</div><h3>Retrieve every verdict</h3><p>Each provider's rating, factor breakdown, and as-of date — reconstructed in the provider's own terms.</p></div>
         <div class="card"><div class="num">2</div><h3>Ground in fundamentals</h3><p>Issuer fundamentals + market context, modeled on <b>SEC EDGAR</b> &amp; <b>FRED</b> and as-of filtered.</p></div>
         <div class="card"><div class="num">3</div><h3>Decompose the notch gap</h3><p>Attribute the divergence to <b>weighting / input / methodology</b> buckets — a deterministic waterfall.</p></div>
         <div class="card"><div class="num">4</div><h3>Fire red flags</h3><p>Deterministic rules catch <b>stale input, thin coverage, outliers, methodology conflicts</b> — each cited.</p></div>
-        <div class="card"><div class="num">5</div><h3>Emit a dossier</h3><p>Every claim hyperlinked to a source row — an <b>auditable</b> artifact an analyst can defend.</p></div>
+        <div class="card"><div class="num">5</div><h3>Emit a report</h3><p>Every claim hyperlinked to a source row — an <b>auditable</b> artifact an analyst can defend.</p></div>
         <div class="card" style="background:var(--ink); border-color:var(--ink)">
           <div class="k" style="color:#7ee787">The value</div>
           <h3 style="color:#fff">Minutes, not hours</h3>
@@ -442,61 +484,6 @@
       <div class="callout success">
         Prism never says buy / sell / hold. It explains <i>why the data
         disagrees</i> — a reference-data &amp; data-quality capability, not an investment decision.
-      </div>
-    </section>
-
-    <!-- 5. RUN OF SHOW -->
-    <section class="slide">
-      <div class="slide-head">
-        <div class="eyebrow">Live Demo · Run of Show</div>
-        <h2>Three minutes, one reveal</h2>
-        <p class="sub">The narrative arc we walk the judges through on the live app.</p>
-      </div>
-      <div class="timeline">
-        <div class="beat"><div class="t">0:00</div><div class="d">Analyst opens <b>General Electric</b> with an as-of date. Three verdicts appear — Baa2, BBB (mid), <b>BBB−</b>. "Which do you trust?"</div></div>
-        <div class="beat"><div class="t">0:20</div><div class="d">Human <b>confirm-scope gate</b> — governed agents on display before anything runs.</div></div>
-        <div class="beat"><div class="t">0:35</div><div class="d">Provider agents stream reasoning cards; the fundamentals agent grounds it in <b>EDGAR-style</b> financials + <b>FRED-style</b> spread context.</div></div>
-        <div class="beat"><div class="t">1:15</div><div class="d">The <b>decomposition waterfall</b> assembles — the notch gap attributed to leverage input vs sector overlay.</div></div>
-        <div class="beat"><div class="t">1:45</div><div class="d"><b style="color:var(--danger)">RED FLAG.</b> MSCI's leverage input predates GE's Q3 10-Q. Click → the deterministic rule + both source dates. "MSCI is stale."</div></div>
-        <div class="beat"><div class="t">2:15</div><div class="d">A <b>consensus control</b> issuer — providers within one notch → Prism confirms agreement, high confidence.</div></div>
-        <div class="beat"><div class="t">2:35</div><div class="d">Export the <b>reconciliation dossier</b> — every claim hyperlinked to its source.</div></div>
-      </div>
-    </section>
-
-    <!-- 6. MONEY MOMENT -->
-    <section class="slide">
-      <div class="slide-head">
-        <div class="eyebrow">The Deterministic Reveal</div>
-        <h2>The reveal is a deterministic C# rule</h2>
-        <p class="sub">Reproducible on stage, every time. The LLM only narrates and cites; the trigger is pure code.</p>
-      </div>
-      <div class="two-col">
-        <div>
-          <div class="codeblock" style="margin-bottom:14px">
-            <div><span class="cmt">// Freshness &amp; Red-Flag engine — deterministic</span></div>
-            <div><span class="kw">if</span> (provider.RatingActionDate <span class="warn">&lt;</span> issuer.LatestFilingDate)</div>
-            <div>&nbsp;&nbsp;&nbsp;&nbsp;<span class="warn">Fire</span>(RedFlagCode.<span class="warn">STALE_INPUT</span>);</div>
-          </div>
-          <div class="grid g2">
-            <div class="card"><div class="k" style="color:var(--danger)">MSCI action date</div><h3 class="mono">2025-09-15</h3><p>Rests on GE's Q2 leverage (pre-deleveraging).</p></div>
-            <div class="card"><div class="k" style="color:var(--success)">GE 10-Q filed</div><h3 class="mono">2025-11-05</h3><p>Q3 shows deleveraging — never incorporated.</p></div>
-          </div>
-        </div>
-        <div style="display:flex; flex-direction:column; gap:14px">
-          <div class="callout danger">
-            <b>"MSCI's assessment hasn't caught up."</b> Its rating action predates the issuer's latest
-            10-Q, filed six weeks ago showing deleveraging — so its one-notch-weaker <b>BBB−</b> is a
-            <b>freshness artifact of the leverage input</b>, not a real disagreement about GE's credit.
-          </div>
-          <div class="callout">
-            On click, Prism shows the <b>rule + both source rows</b> — the filing date and the
-            provider's as-of date. That defuses "you rigged the data": the finding is auditable.
-          </div>
-          <div class="callout success">
-            <b>Also demoed:</b> a consensus <b>control</b> issuer where all providers agree — Prism must
-            <i>exonerate</i>, not just incriminate.
-          </div>
-        </div>
       </div>
     </section>
 
@@ -547,7 +534,7 @@
         <p class="sub">A single AG-UI orchestrator; specialists run as in-process function tools — each call renders a live CopilotKit card.</p>
       </div>
       <div class="agents" style="margin-bottom:14px">
-        <div class="agent orch"><div class="role">Reconciliation Orchestrator</div><div class="job">Plans the sweep, owns the confirm-scope gate, assembles the dossier.</div><div class="mdl">LLM · medium reasoning</div></div>
+        <div class="agent orch"><div class="role">Reconciliation Orchestrator</div><div class="job">Plans the sweep, owns the confirm-scope gate, assembles the report.</div><div class="mdl">LLM · medium reasoning</div></div>
         <div class="agent"><div class="role">Provider Agents ×3</div><div class="job">Reconstruct Moody's, DBRS &amp; MSCI ratings in each provider's own terms, with citations.</div><div class="mdl">LLM · low reasoning</div></div>
         <div class="agent"><div class="role">Fundamentals Grounding</div><div class="job">EDGAR-style financials + FRED / Treasury market context, as-of filtered.</div><div class="mdl">LLM · low reasoning</div></div>
         <div class="agent"><div class="role">Freshness &amp; Red-Flag</div><div class="job">Runs deterministic rules, then narrates each flag with a cited source.</div><div class="mdl">LLM + C# rules</div></div>
@@ -561,6 +548,100 @@
           <div class="callout amber"><b>Human-in-the-loop gate.</b> The orchestrator pauses to confirm issuer + as-of date + providers before the sweep — governed agents by design.</div>
           <div class="callout"><b>Design rule.</b> Notch math, ordering, and flag triggers are deterministic; the LLM only <i>narrates and cites</i>. The rule renders on screen when a flag fires.</div>
         </div>
+      </div>
+    </section>
+
+    <!-- 7b. FABRIC DATA FOUNDATION -->
+    <section class="slide">
+      <div class="slide-head" style="margin-bottom:12px">
+        <div class="eyebrow">Data Foundation · Microsoft Fabric</div>
+        <h2>One foundation, every team — Fabric feeds Prism</h2>
+        <p class="sub">Multi-provider capital-markets data lands once, reconciles once, and serves every consumer — including Prism's agents — from a single governed copy.</p>
+      </div>
+      <div class="fabricflow">
+        <div class="fcol">
+          <div class="fhead">Sources</div>
+          <div class="fbody">
+            <div class="fitem">Moody's ratings feed</div>
+            <div class="fitem">Morningstar DBRS</div>
+            <div class="fitem">MSCI <small>illustrative model</small></div>
+            <div class="fitem">SEC EDGAR <small>filings &amp; as-of dates</small></div>
+            <div class="fitem">FRED · Treasury <small>spreads &amp; curves</small></div>
+          </div>
+        </div>
+        <div class="farrow">→</div>
+        <div class="fcol teal">
+          <div class="fhead">DataHub · Reconciliation Engine</div>
+          <div class="fbody">
+            <div class="fitem">Ingest &amp; normalize <small>every provider, one schema</small></div>
+            <div class="fitem">Unified security master <small>issuer &amp; instrument identity</small></div>
+            <div class="fitem det">Reconcile <small>1–21 notch ladder · deterministic C#</small></div>
+            <div class="fitem">Govern &amp; publish <small>lineage on every row</small></div>
+          </div>
+        </div>
+        <div class="farrow">→</div>
+        <div class="fcol teal">
+          <div class="fhead">Microsoft Fabric</div>
+          <div class="fbody">
+            <div class="medals">
+              <div class="medal bronze"><div class="mname">Bronze</div><div class="mdesc">raw feeds</div></div>
+              <div class="medal silver"><div class="mname">Silver</div><div class="mdesc">normalized</div></div>
+              <div class="medal gold"><div class="mname">Gold</div><div class="mdesc">reconciled</div></div>
+            </div>
+            <div class="fitem">Lakehouse <small>Delta tables, Spark</small></div>
+            <div class="fitem">Data Factory <small>provider pipelines &amp; flows</small></div>
+            <div class="fitem">Real-Time Intelligence <small>rating actions &amp; filings, intraday</small></div>
+            <div class="fitem">Power BI · AI / Copilot <small>reports · Ask DataHub</small></div>
+            <div class="onelake">▦ <b>OneLake</b> — single, governed data foundation</div>
+          </div>
+        </div>
+        <div class="farrow">→</div>
+        <div class="fcol">
+          <div class="fhead">Consumers</div>
+          <div class="fbody">
+            <div class="fitem det">Prism agents <small>Azure AI Foundry</small></div>
+            <div class="fitem">Credit analysts</div>
+            <div class="fitem">Risk monitoring</div>
+            <div class="fitem">CIO dashboards</div>
+            <div class="fitem">Audit &amp; compliance</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 7c. WHY FABRIC -->
+    <section class="slide">
+      <div class="slide-head">
+        <div class="eyebrow">Why Fabric · The Capital-Markets Bet</div>
+        <h2>Reconciliation isn't a report — it's the foundation</h2>
+        <p class="sub">In capital markets every counterparty ships a different version of the truth. Fabric makes the reconciled version the <i>only</i> version anyone reads.</p>
+      </div>
+      <div class="grid g2" style="margin-bottom:14px">
+        <div class="card">
+          <div class="k">One copy, zero drift</div>
+          <h3>OneLake gold layer is the book of record</h3>
+          <p>Legacy stacks re-extract data per team, creating new breaks downstream of the recon you just ran. Here Trader views, risk, and Prism's agents all read the <b>same reconciled rows</b>.</p>
+        </div>
+        <div class="card">
+          <div class="k">Medallion = the recon lifecycle</div>
+          <h3>Bronze → Silver → Gold is the ops workflow, made architecture</h3>
+          <p><b>Bronze</b> preserves raw provider feeds for audit; <b>Silver</b> normalizes to the security master &amp; notch ladder; <b>Gold</b> is reconciled truth — full raw-to-reported lineage for regulators.</p>
+        </div>
+        <div class="card">
+          <div class="k">Batch → continuous</div>
+          <h3>Divergence surfaces intraday, not T+1</h3>
+          <p>Real-Time Intelligence streams rating actions and filings as they land — a stale-input flag fires <b>while there's still time to act</b>, not in tomorrow's breaks report.</p>
+        </div>
+        <div class="card">
+          <div class="k">AI grounded, not guessing</div>
+          <h3>Agents you can put in front of an auditor</h3>
+          <p>Prism's Foundry agents read as-of-correct Gold data, so every citation in the report resolves through Fabric lineage to a governed source row — <b>no confident hallucination over inconsistent copies</b>.</p>
+        </div>
+      </div>
+      <div class="callout success">
+        <b>The two-plane story:</b> Fabric is the <b>data plane</b> — one governed, reconciled foundation.
+        Foundry is the <b>agent plane</b> — Prism's specialists reasoning on top of it. Each makes the other
+        trustworthy: agents are only as good as the data beneath them, and data only pays off when agents put it to work.
       </div>
     </section>
 
@@ -585,7 +666,7 @@
         </div></div>
         <div class="arrow">▼</div>
         <div class="layer"><div class="tag">Azure &amp; Data</div><div class="body">
-          <span class="pill">Azure AI Foundry · GPT-5.x</span><span class="pill">Azure AI Search (hybrid+vector)</span><span class="pill">Cosmos DB (dossiers + audit)</span><span class="pill">SEC EDGAR · FRED · Treasury — illustrative</span>
+          <span class="pill">Azure AI Foundry · GPT-5.x</span><span class="pill">Azure AI Search (hybrid+vector)</span><span class="pill">Cosmos DB (reports + audit)</span><span class="pill real">Fabric OneLake · gold layer</span><span class="pill">SEC EDGAR · FRED · Treasury — illustrative</span>
         </div></div>
       </div>
       <div class="chips" style="margin-top:14px">
@@ -695,37 +776,6 @@
       </div>
     </section>
 
-    <!-- 9. BUSINESS ACCURACY & GOVERNANCE -->
-    <section class="slide">
-      <div class="slide-head">
-        <div class="eyebrow">Business Accuracy &amp; Governance</div>
-        <h2>Provider-accurate framing on recognizable issuers</h2>
-        <p class="sub">Split ratings are textbook fixed income. Every issuer is a recognizable public company; the provider ratings and factor breakdowns are illustrative and clearly labeled.</p>
-      </div>
-      <div class="two-col">
-        <div>
-          <ul class="clean" style="margin-bottom:16px">
-            <li><b>Moody's, Morningstar DBRS &amp; MSCI</b> — each provider modeled in its own methodology &amp; scale</li>
-            <li><b>Ratings &amp; factor breakdowns</b> — illustrative and clearly labeled synthetic</li>
-            <li><b>Canonical notch ladder</b> — 1–21 scale maps every rating system to one integer</li>
-            <li><b>Issuers</b> — recognizable public companies, one per sector</li>
-          </ul>
-          <div class="chips">
-            <span class="chip">GE · Industrials</span><span class="chip">Southern Co · Utilities</span>
-            <span class="chip">Coca-Cola · Staples</span><span class="chip">Ford · Discretionary</span>
-            <span class="chip">Moderna · Healthcare</span><span class="chip">Goldman Sachs · Financials</span>
-          </div>
-        </div>
-        <div>
-          <div class="callout" style="margin-bottom:12px"><b>The say / never-say discipline.</b> The scope guardrail is coded and tested — it's a compliance strength, not just wording.</div>
-          <p class="sub" style="margin-bottom:6px; font-weight:700; color:var(--success)">Prism says:</p>
-          <div class="say" style="display:flex; flex-wrap:wrap; gap:7px; margin-bottom:12px">
-            <span class="ok">reconciliation</span><span class="ok">divergence</span><span class="ok">provenance</span><span class="ok">as-of correctness</span><span class="ok">notch gap</span><span class="ok">auditable · cited</span>
-          </div>
-        </div>
-      </div>
-    </section>
-
     <!-- 11. CREATIVITY & REUSE -->
     <section class="slide">
       <div class="slide-head">
@@ -765,20 +815,31 @@
         <div class="glyph"><span>P</span></div>
         <div class="wm">Data Providers Pod</div>
       </div>
-      <h1 style="font-size:52px; margin-bottom:18px">Which verdict can you trust?<br/>Now you can prove it.</h1>
-      <p class="oneliner">
-        Prism turns three conflicting credit verdicts into <b>one cited, auditable reconciliation</b> —
-        with a deterministic red-flag reveal you can reproduce on stage, every time.
-      </p>
-      <div class="grid g3" style="gap:20px; margin-bottom:24px; max-width:640px">
-        <div class="stat"><div class="v">3→1</div><div class="l">verdicts to one dossier</div></div>
-        <div class="stat"><div class="v">100%</div><div class="l">claims cited to source</div></div>
-        <div class="stat"><div class="v">260</div><div class="l">tests green</div></div>
+      <h1 style="font-size:52px; margin-bottom:20px">Next Steps</h1>
+      <div class="callout" style="max-width:860px; text-align:left; margin-bottom:26px">
+        <ul class="clean" style="margin:0">
+          <li><b>Sharpen the analyst workflow.</b> Identify features that could improve analysts' decision-making.</li>
+          <li><b>Target real industry pain.</b> Identify use cases where discrepancies between data providers cause real problems in the industry, design solutions to those specific cases, and build them into the app.</li>
+        </ul>
       </div>
-      <div class="chips">
-        <span class="chip spectrum">Thank you</span>
-        <span class="chip">Live demo → app.localhost:5173</span>
-        <span class="chip accent">Q&amp;A</span>
+
+      <!-- de-emphasized recap of the original close -->
+      <div style="opacity:.6; transform:scale(.9); transform-origin:center">
+        <p class="sub" style="font-weight:700; margin-bottom:10px">Which verdict can you trust? Now you can prove it.</p>
+        <p class="oneliner" style="font-size:16px; margin-bottom:18px">
+          Prism turns three conflicting credit verdicts into <b>one cited, auditable reconciliation</b> —
+          with a deterministic red-flag reveal you can reproduce on stage, every time.
+        </p>
+        <div class="grid g3" style="gap:16px; margin-bottom:18px; max-width:560px">
+          <div class="stat"><div class="v">3→1</div><div class="l">verdicts to one report</div></div>
+          <div class="stat"><div class="v">100%</div><div class="l">claims cited to source</div></div>
+          <div class="stat"><div class="v">260</div><div class="l">tests green</div></div>
+        </div>
+        <div class="chips">
+          <span class="chip spectrum">Thank you</span>
+          <span class="chip">Live demo → app.localhost:5173</span>
+          <span class="chip accent">Q&amp;A</span>
+        </div>
       </div>
     </section>
 
@@ -808,9 +869,9 @@
   (function () {
     var slides = Array.prototype.slice.call(document.querySelectorAll('.slide'));
     var titles = [
-      'Title', 'The Problem', 'Proposed Solution', 'Run of Show',
-      'The Reveal', 'Deterministic Core', 'Agentic Design', 'Architecture', 'Azure Private Architecture',
-      'Business Accuracy', 'Creativity & Reuse', 'Close'
+      'Title', 'The Problem', 'Proposed Solution', 'Deterministic Core',
+      'Agentic Design', 'Fabric Data Foundation', 'Why Fabric',
+      'Architecture', 'Azure Private Architecture', 'Creativity & Reuse', 'Next Steps'
     ];
     var idx = 0;
     var total = slides.length;
