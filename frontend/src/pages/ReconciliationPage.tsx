@@ -121,7 +121,8 @@ export default function ReconciliationPage() {
               <CardContent className="flex items-center gap-3 p-8 text-muted-foreground">
                 <Loader2 className="h-5 w-5 animate-spin text-primary" aria-hidden="true" />
                 <span className="text-sm">
-                  Reconciling provider ratings for <span className="font-mono">{issuerId}</span> as of{' '}
+                  Reconciling provider ratings for{' '}
+                  <span className="font-mono">{issuer?.legalName ?? issuerId}</span> as of{' '}
                   {asOf}…
                 </span>
               </CardContent>
